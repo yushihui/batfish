@@ -248,8 +248,7 @@ public class BDDPacket {
    */
   public BDDInteger allocateBDDInteger(String name, int bits, boolean reverse) {
     checkArgument(
-        _nextFreeBDDVarIdx + bits < FIRST_PACKET_VAR,
-        "Not enough variables to allocatePacketBDDInteger");
+        _nextFreeBDDVarIdx + bits < FIRST_PACKET_VAR, "Not enough variables to allocateBDDInteger");
     BDDInteger var = makeFromIndex(_factory, bits, _nextFreeBDDVarIdx, reverse);
     addBitNames(name, bits, _nextFreeBDDVarIdx, false);
     _nextFreeBDDVarIdx += bits;
