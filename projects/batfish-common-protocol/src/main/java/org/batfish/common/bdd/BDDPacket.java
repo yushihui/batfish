@@ -233,7 +233,7 @@ public class BDDPacket {
       _factory.setVarNum(_nextFreeBDDVarIdx + bits);
     }
     BDDInteger var = makeFromIndex(_factory, bits, _nextFreeBDDVarIdx, reverse);
-    addBitNames(name, STATE_LENGTH, _nextFreeBDDVarIdx, false);
+    addBitNames(name, bits, _nextFreeBDDVarIdx, false);
     _nextFreeBDDVarIdx += bits;
     return var;
   }
