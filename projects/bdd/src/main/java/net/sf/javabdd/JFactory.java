@@ -189,9 +189,11 @@ public final class JFactory extends BDDFactory {
 
     @Override
     public BDD exist(BDD var) {
-      int x = _index;
-      int y = ((BDDImpl) var)._index;
-      return makeBDD(bdd_exist(x, y));
+      return my_exist(this, var);
+
+      //      int x = _index;
+      //      int y = ((BDDImpl) var)._index;
+      //      return makeBDD(bdd_exist(x, y));
     }
 
     @Override
@@ -805,6 +807,18 @@ public final class JFactory extends BDDFactory {
     return result;
   }
 
+  private static int MY_EXIST_HASH(int op, int var) {
+    return PAIR(op, var);
+  }
+
+  private static int EXISTSALL_HASH(int[] operands, int var) {
+    int result = var;
+    for (int operand : operands) {
+      result = PAIR(result, operand);
+    }
+    return result;
+  }
+
   private static int RESTRHASH(int r, int var) {
     return PAIR(r, var);
   }
@@ -867,6 +881,8 @@ public final class JFactory extends BDDFactory {
   /* Should *not* be used in bdd_apply calls !!! */
   private static final int bddop_not = 10;
   private static final int bddop_simplify = 11;
+
+  private static final int bddop_existsAll = 12;
 
   @Override
   public BDD orAll(BDD... bddOperands) {
@@ -1477,8 +1493,13 @@ public final class JFactory extends BDDFactory {
     if (values.length < 2) {
       return values;
     }
-    int i = 0; // index last written to
-    int j = 1; // index to read from next
+
+    return dedupSorted(values, 0);
+  }
+
+  static int[] dedupSorted(int[] values, int start) {
+    int i = start; // index last written to
+    int j = start + 1; // index to read from next
     while (j < values.length) {
       if (values[i] != values[j]) {
         values[++i] = values[j++];
@@ -1487,9 +1508,9 @@ public final class JFactory extends BDDFactory {
       }
     }
 
-    int dedupLen = i + 1;
-    if (dedupLen < values.length) {
-      return Arrays.copyOf(values, dedupLen);
+    int end = i + 1;
+    if (start != 0 || end < values.length) {
+      return Arrays.copyOfRange(values, start, end);
     } else {
       return values;
     }
@@ -2398,6 +2419,260 @@ public final class JFactory extends BDDFactory {
     entry.c = replaceid;
     entry.res = res;
 
+    return res;
+  }
+
+  int bdd_existsAll(int[] operands, int var) {
+    assert Arrays.stream(operands).noneMatch(JFactory::ISCONST);
+
+    if (ISONE(var)) {
+      return orAll_rec(operands);
+    } else if (operands.length == 0) {
+      return BDDZERO;
+    } else if (operands.length == 1) {
+      return my_bdd_exist(operands[0], var);
+    }
+
+    // sort and dedup the operands to optimize caching
+    Arrays.sort(operands);
+    operands = dedupSorted(operands);
+
+    MultiOpBddCacheData entry = BddCache_lookupMultiOp(multiopcache, EXISTSALL_HASH(operands, var));
+    if (entry.a == bddop_existsAll && entry.b == var && Arrays.equals(operands, entry.operands)) {
+      if (CACHESTATS) {
+        cachestats.opHit++;
+      }
+      return entry.c;
+    }
+    if (CACHESTATS) {
+      cachestats.opMiss++;
+    }
+
+    /* Similar logic to orAll.
+     *
+     * In a single pass over operands:
+     * 1. Find the minimum level branched on at the roots of the current operand BDDs.
+     * 2. If the minimum level is less than the level of var (the next variable to existentially
+     *    quantify), then we're creating a new node in this call.
+     * 3. Compute the size needed for the operand arrays of the two recursive calls. This is equal
+     *    to the number of operands whose root level are greater than the minimum, plus the number
+     *    of operands whose root level is equal to the minimum and whose child (low or high,
+     *    corresponding to if the recursive call is computing the low or high child of the result)
+     *    is not the zero BDD.
+     * 3. Whether either recursive call can be short-circuited because one of the operands is the
+     *    one BDD. This can only happen when the one is a child a BDD whose root level is the
+     *    minimum.
+     */
+
+    int minLevel = LEVEL(operands[0]);
+    int nodesWithMinLevel = 0;
+    int nodesWithMinLevelLowNonZero = 0;
+    int nodesWithMinLevelHighNonZero = 0;
+    boolean nodeWithMinLevelHasLowOne = false;
+    boolean nodeWithMinLevelHasHighOne = false;
+    for (int n : operands) {
+      int level = LEVEL(n);
+      if (level < minLevel) {
+        minLevel = level;
+        nodesWithMinLevel = 0;
+        nodesWithMinLevelHighNonZero = 0;
+        nodesWithMinLevelLowNonZero = 0;
+        nodeWithMinLevelHasHighOne = false;
+        nodeWithMinLevelHasLowOne = false;
+      } else if (level > minLevel) {
+        continue;
+      }
+
+      // level == minLevel
+      nodesWithMinLevel++;
+
+      int high = HIGH(n);
+      nodeWithMinLevelHasHighOne |= ISONE(high);
+      nodesWithMinLevelHighNonZero += ISZERO(high) ? 0 : 1;
+
+      int low = LOW(n);
+      nodeWithMinLevelHasLowOne |= ISONE(low);
+      nodesWithMinLevelLowNonZero += ISZERO(low) ? 0 : 1;
+    }
+    int nodesWithoutMinLevel = operands.length - nodesWithMinLevel;
+
+    int varLevel = LEVEL(var);
+    int res;
+    if (minLevel < varLevel) {
+      // this is just like orAll
+      int low;
+      if (!nodeWithMinLevelHasLowOne) {
+        /* Make the resursive call for the low branch. None of the operands are 1, so we can't
+         * short-circuit to 1. Allocate and build the array of operands, then make the call and push
+         * the result onto the stack.
+         */
+        int[] lowOperands = new int[nodesWithMinLevelLowNonZero + nodesWithoutMinLevel];
+        int i = 0;
+        for (int operand : operands) {
+          if (LEVEL(operand) == minLevel) {
+            int l = LOW(operand);
+            if (!ISZERO(l)) {
+              assert !ISCONST(l);
+              lowOperands[i++] = l;
+            }
+          } else {
+            assert !ISCONST(operand);
+            lowOperands[i++] = operand;
+          }
+        }
+        assert i == lowOperands.length;
+        low = bdd_existsAll(lowOperands, var);
+        PUSHREF(low); // make sure low isn't garbage collected.
+      } else {
+        low = BDDONE;
+      }
+
+      int high;
+      if (!nodeWithMinLevelHasHighOne) {
+        /* Make the resursive call for the high branch. None of the operands are 1, so we can't
+         * short-circuit to 1. Allocate and build the array of operands, then make the call and push
+         * the result onto the stack.
+         */
+        int[] highOperands = new int[nodesWithMinLevelHighNonZero + nodesWithoutMinLevel];
+        int i = 0;
+        for (int operand : operands) {
+          if (LEVEL(operand) == minLevel) {
+            int h = HIGH(operand);
+            if (!ISZERO(h)) {
+              assert !ISCONST(h);
+              highOperands[i++] = h;
+            }
+          } else {
+            assert !ISCONST(operand);
+            highOperands[i++] = operand;
+          }
+        }
+        assert i == highOperands.length;
+        high = bdd_existsAll(highOperands, var);
+        PUSHREF(high); // make sure high isn't garbage collected.
+      } else {
+        high = BDDONE;
+      }
+
+      res = bdd_makenode(minLevel, low, high);
+
+      if (!nodeWithMinLevelHasHighOne) {
+        POPREF(1);
+      }
+      if (!nodeWithMinLevelHasLowOne) {
+        POPREF(1);
+      }
+    } else if (minLevel > varLevel) {
+      // simplest case: none of the operands branch on the current quantified variable
+      res = bdd_existsAll(operands, HIGH(var));
+    } else /* minLevel == varLevel */ {
+      if (nodeWithMinLevelHasLowOne || nodeWithMinLevelHasHighOne) {
+        res = BDDONE;
+      } else {
+        // similar to orAll, except don't branch on the minLevel. The low and high operands are
+        // combined for a single recursive call.
+
+        int[] newOperands =
+            new int
+                [nodesWithMinLevelLowNonZero + nodesWithMinLevelHighNonZero + nodesWithoutMinLevel];
+        int i = 0;
+        for (int operand : operands) {
+          if (LEVEL(operand) == minLevel) {
+            int l = LOW(operand);
+            if (!ISZERO(l)) {
+              assert !ISCONST(l);
+              newOperands[i++] = l;
+            }
+            int r = HIGH(operand);
+            if (!ISZERO(r)) {
+              assert !ISCONST(r);
+              newOperands[i++] = r;
+            }
+          } else {
+            assert !ISCONST(operand);
+            newOperands[i++] = operand;
+          }
+        }
+        assert i == newOperands.length;
+        res = bdd_existsAll(newOperands, HIGH(var));
+      }
+    }
+
+    if (CACHESTATS && entry.a != -1) {
+      cachestats.opOverwrite++;
+    }
+    entry.a = bddop_existsAll;
+    entry.b = var;
+    entry.c = res;
+    entry.operands = operands;
+    return res;
+  }
+
+  BDD my_exist(BDD op, BDD var) {
+    if (applycache == null) {
+      applycache = BddCacheI_init(cachesize);
+    }
+    if (quantcache == null) {
+      quantcache = BddCacheI_init(cachesize);
+    }
+    if (multiopcache == null) {
+      multiopcache = BddCacheMultiOp_init(cachesize);
+    }
+
+    INITREF();
+    int res = my_bdd_exist(((BDDImpl) op)._index, ((BDDImpl) var)._index);
+    return new BDDImpl(res);
+  }
+
+  int my_bdd_exist(int op, int var) {
+    assert !ISZERO(var);
+    if (op < 2 || ISONE(var)) {
+      return op;
+    }
+
+    BddCacheDataI entry = BddCache_lookupI(quantcache, MY_EXIST_HASH(op, var));
+    if (entry.a == op && entry.b == var && entry.c == CACHEID_EXIST) {
+      if (CACHESTATS) {
+        cachestats.opHit++;
+      }
+      return entry.res;
+    }
+    if (CACHESTATS) {
+      cachestats.opMiss++;
+    }
+
+    int res;
+    if (LEVEL(op) < LEVEL(var)) {
+      res =
+          bdd_makenode(
+              LEVEL(op), PUSHREF(my_bdd_exist(LOW(op), var)), PUSHREF(my_bdd_exist(HIGH(op), var)));
+      POPREF(2);
+    } else if (LEVEL(op) > LEVEL(var)) {
+      // don't cache, this is too cheap to recompute
+      return my_bdd_exist(op, HIGH(var));
+    } else {
+      int low = LOW(op);
+      int high = HIGH(op);
+      if (ISONE(low) || ISONE(high)) {
+        return BDDONE;
+      } else if (ISZERO(low)) {
+        // fast, so don't cache
+        return my_bdd_exist(high, HIGH(var));
+      } else if (ISZERO(high)) {
+        // fast, so don't cache
+        return my_bdd_exist(low, HIGH(var));
+      } else {
+        res = bdd_existsAll(new int[] {low, high}, HIGH(var));
+      }
+    }
+
+    if (CACHESTATS && entry.a != -1) {
+      cachestats.opOverwrite++;
+    }
+    entry.a = op;
+    entry.b = var;
+    entry.c = CACHEID_EXIST;
+    entry.res = res;
     return res;
   }
 

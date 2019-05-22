@@ -446,4 +446,69 @@ public class JFactoryTest {
     int[] a4 = {1};
     assertEquals(JFactory.dedupSorted(a4), a4);
   }
+
+  @Test
+  public void testMyExistSimple() {
+    JFactory factory = (JFactory) JFactory.init(1000, 1000);
+    factory.setVarNum(5);
+
+    BDD one = factory.one();
+    BDD zero = factory.zero();
+    BDD v0 = factory.ithVar(0);
+    BDD v1 = factory.ithVar(1);
+    BDD v2 = factory.ithVar(2);
+
+    assertEquals(v0, factory.my_exist(v0, v1));
+    assertEquals(v1, factory.my_exist(v1, v0));
+    assertTrue(factory.my_exist(v1, v1).isOne());
+    assertTrue(factory.my_exist(one, v1).isOne());
+    assertTrue(factory.my_exist(zero, v1).isZero());
+    assertTrue(factory.my_exist(zero, v1).isZero());
+    assertEquals(v1, factory.my_exist(v1, one));
+
+    {
+      BDD in = v0.and(v1);
+      BDD out = v0;
+      assertEquals(out, factory.my_exist(in, v1));
+    }
+
+    {
+      BDD in = v0.and(v1);
+      BDD out = v1;
+      assertEquals(out, factory.my_exist(in, v0));
+    }
+
+    {
+      BDD in = v0.and(v1).and(v2);
+      BDD out = v0.and(v2);
+      assertEquals(out, factory.my_exist(in, v1));
+    }
+  }
+
+  @Test
+  public void testMyExist() {
+    JFactory factory = (JFactory) JFactory.init(1000, 1000);
+    factory.setVarNum(15);
+
+    BDD one = factory.one();
+    BDD zero = factory.zero();
+    BDD v0 = factory.ithVar(0);
+    BDD v1 = factory.ithVar(1);
+    BDD v2 = factory.ithVar(2);
+    BDD v3 = factory.ithVar(3);
+    BDD v4 = factory.ithVar(4);
+
+    {
+      BDD in = v0.and(v1).and(v2).and(v3);
+      BDD vars = v1.and(v2);
+      BDD out = v0.and(v3);
+      assertEquals(out, factory.my_exist(in, vars));
+    }
+
+    {
+      BDD vars = v1.and(v2);
+      BDD out = v0.and(v3);
+      assertEquals(out, factory.my_exist(out, vars));
+    }
+  }
 }
