@@ -66,7 +66,8 @@ public class BDDPacket {
 
   private final Map<Integer, String> _bitNames;
   private final BDDFactory _factory;
-  private int _nextFreeBDDVarIdx = 0;
+  private int _nextFreeBDDVarIdx;
+  private static final int FIRST_PACKET_VAR = 50;
 
   // Packet bits
   private final @Nonnull BDDInteger _dscp;
@@ -142,25 +143,28 @@ public class BDDPacket {
 
     _bitNames = new HashMap<>();
 
-    _dstIp = allocateBDDInteger("dstIp", IP_LENGTH, false);
-    _srcIp = allocateBDDInteger("srcIp", IP_LENGTH, false);
-    _dstPort = allocateBDDInteger("dstPort", PORT_LENGTH, false);
-    _srcPort = allocateBDDInteger("srcPort", PORT_LENGTH, false);
-    _ipProtocol = new BDDIpProtocol(allocateBDDInteger("ipProtocol", IP_PROTOCOL_LENGTH, false));
-    _icmpCode = new BDDIcmpCode(allocateBDDInteger("icmpCode", ICMP_CODE_LENGTH, false));
-    _icmpType = new BDDIcmpType(allocateBDDInteger("icmpType", ICMP_TYPE_LENGTH, false));
-    _tcpAck = allocateBDDBit("tcpAck");
-    _tcpCwr = allocateBDDBit("tcpCwr");
-    _tcpEce = allocateBDDBit("tcpEce");
-    _tcpFin = allocateBDDBit("tcpFin");
-    _tcpPsh = allocateBDDBit("tcpPsh");
-    _tcpRst = allocateBDDBit("tcpRst");
-    _tcpSyn = allocateBDDBit("tcpSyn");
-    _tcpUrg = allocateBDDBit("tcpUrg");
-    _dscp = allocateBDDInteger("dscp", DSCP_LENGTH, false);
-    _ecn = allocateBDDInteger("ecn", ECN_LENGTH, false);
-    _fragmentOffset = allocateBDDInteger("fragmentOffset", FRAGMENT_OFFSET_LENGTH, false);
-    _state = allocateBDDInteger("state", STATE_LENGTH, false);
+    _nextFreeBDDVarIdx = FIRST_PACKET_VAR;
+    _dstIp = allocatePacketBDDInteger("dstIp", IP_LENGTH, false);
+    _srcIp = allocatePacketBDDInteger("srcIp", IP_LENGTH, false);
+    _dstPort = allocatePacketBDDInteger("dstPort", PORT_LENGTH, false);
+    _srcPort = allocatePacketBDDInteger("srcPort", PORT_LENGTH, false);
+    _ipProtocol =
+        new BDDIpProtocol(allocatePacketBDDInteger("ipProtocol", IP_PROTOCOL_LENGTH, false));
+    _icmpCode = new BDDIcmpCode(allocatePacketBDDInteger("icmpCode", ICMP_CODE_LENGTH, false));
+    _icmpType = new BDDIcmpType(allocatePacketBDDInteger("icmpType", ICMP_TYPE_LENGTH, false));
+    _tcpAck = allocatePacketBDDBit("tcpAck");
+    _tcpCwr = allocatePacketBDDBit("tcpCwr");
+    _tcpEce = allocatePacketBDDBit("tcpEce");
+    _tcpFin = allocatePacketBDDBit("tcpFin");
+    _tcpPsh = allocatePacketBDDBit("tcpPsh");
+    _tcpRst = allocatePacketBDDBit("tcpRst");
+    _tcpSyn = allocatePacketBDDBit("tcpSyn");
+    _tcpUrg = allocatePacketBDDBit("tcpUrg");
+    _dscp = allocatePacketBDDInteger("dscp", DSCP_LENGTH, false);
+    _ecn = allocatePacketBDDInteger("ecn", ECN_LENGTH, false);
+    _fragmentOffset = allocatePacketBDDInteger("fragmentOffset", FRAGMENT_OFFSET_LENGTH, false);
+    _state = allocatePacketBDDInteger("state", STATE_LENGTH, false);
+    _nextFreeBDDVarIdx = 0;
 
     _pairing = _factory.makePair();
     _swapSourceAndDestinationPairing =
@@ -192,10 +196,24 @@ public class BDDPacket {
    * @param name Used for debugging.
    * @return A {@link BDD} representing the sentence "this variable is true" for the new variable.
    */
-  public BDD allocateBDDBit(String name) {
+  private BDD allocatePacketBDDBit(String name) {
     if (_factory.varNum() < _nextFreeBDDVarIdx + 1) {
       _factory.setVarNum(_nextFreeBDDVarIdx + 1);
     }
+    _bitNames.put(_nextFreeBDDVarIdx, name);
+    BDD bdd = _factory.ithVar(_nextFreeBDDVarIdx);
+    _nextFreeBDDVarIdx++;
+    return bdd;
+  }
+
+  /**
+   * Allocate a new single-bit {@link BDD} variable.
+   *
+   * @param name Used for debugging.
+   * @return A {@link BDD} representing the sentence "this variable is true" for the new variable.
+   */
+  public BDD allocateBDDBit(String name) {
+    checkArgument(_nextFreeBDDVarIdx < FIRST_PACKET_VAR, "Not enough variables to allocateBDDBit");
     _bitNames.put(_nextFreeBDDVarIdx, name);
     BDD bdd = _factory.ithVar(_nextFreeBDDVarIdx);
     _nextFreeBDDVarIdx++;
@@ -210,12 +228,30 @@ public class BDDPacket {
    * @param reverse If true, reverse the BDD order of the bits.
    * @return The new variable.
    */
-  public BDDInteger allocateBDDInteger(String name, int bits, boolean reverse) {
+  private BDDInteger allocatePacketBDDInteger(String name, int bits, boolean reverse) {
     if (_factory.varNum() < _nextFreeBDDVarIdx + bits) {
       _factory.setVarNum(_nextFreeBDDVarIdx + bits);
     }
     BDDInteger var = makeFromIndex(_factory, bits, _nextFreeBDDVarIdx, reverse);
     addBitNames(name, STATE_LENGTH, _nextFreeBDDVarIdx, false);
+    _nextFreeBDDVarIdx += bits;
+    return var;
+  }
+
+  /**
+   * Allocate a new {@link BDDInteger} variable.
+   *
+   * @param name Used for debugging.
+   * @param bits The number of bits to allocate.
+   * @param reverse If true, reverse the BDD order of the bits.
+   * @return The new variable.
+   */
+  public BDDInteger allocateBDDInteger(String name, int bits, boolean reverse) {
+    checkArgument(
+        _nextFreeBDDVarIdx + bits < FIRST_PACKET_VAR,
+        "Not enough variables to allocatePacketBDDInteger");
+    BDDInteger var = makeFromIndex(_factory, bits, _nextFreeBDDVarIdx, reverse);
+    addBitNames(name, bits, _nextFreeBDDVarIdx, false);
     _nextFreeBDDVarIdx += bits;
     return var;
   }
