@@ -67,7 +67,8 @@ public class BDDPacket {
   private final Map<Integer, String> _bitNames;
   private final BDDFactory _factory;
   private int _nextFreeBDDVarIdx;
-  private static final int FIRST_PACKET_VAR = 50;
+  private static final int FREE_SPACE = 50;
+  private int _endOfFreeSpace;
 
   // Packet bits
   private final @Nonnull BDDInteger _dscp;
@@ -109,7 +110,6 @@ public class BDDPacket {
    */
   public BDDPacket() {
     _factory = JFactory.init(JFACTORY_INITIAL_NODE_TABLE_SIZE, JFACTORY_INITIAL_NODE_CACHE_SIZE);
-    _factory.enableReorder();
     _factory.setCacheRatio(JFACTORY_CACHE_RATIO);
     // Do not impose a maximum node table increase
     _factory.setMaxIncrease(0);
@@ -143,11 +143,18 @@ public class BDDPacket {
 
     _bitNames = new HashMap<>();
 
-    _nextFreeBDDVarIdx = FIRST_PACKET_VAR;
+    _nextFreeBDDVarIdx = 0;
     _dstIp = allocatePacketBDDInteger("dstIp", IP_LENGTH, false);
     _srcIp = allocatePacketBDDInteger("srcIp", IP_LENGTH, false);
     _dstPort = allocatePacketBDDInteger("dstPort", PORT_LENGTH, false);
     _srcPort = allocatePacketBDDInteger("srcPort", PORT_LENGTH, false);
+
+    // ---- MARK FREE SPACE ----
+    int startOfFreeSpace = _nextFreeBDDVarIdx;
+    _endOfFreeSpace = _nextFreeBDDVarIdx + FREE_SPACE;
+    _nextFreeBDDVarIdx = _endOfFreeSpace;
+    // ----
+
     _ipProtocol =
         new BDDIpProtocol(allocatePacketBDDInteger("ipProtocol", IP_PROTOCOL_LENGTH, false));
     _icmpCode = new BDDIcmpCode(allocatePacketBDDInteger("icmpCode", ICMP_CODE_LENGTH, false));
@@ -164,7 +171,7 @@ public class BDDPacket {
     _ecn = allocatePacketBDDInteger("ecn", ECN_LENGTH, false);
     _fragmentOffset = allocatePacketBDDInteger("fragmentOffset", FRAGMENT_OFFSET_LENGTH, false);
     _state = allocatePacketBDDInteger("state", STATE_LENGTH, false);
-    _nextFreeBDDVarIdx = 0;
+    _nextFreeBDDVarIdx = startOfFreeSpace;
 
     _pairing = _factory.makePair();
     _swapSourceAndDestinationPairing =
@@ -213,7 +220,7 @@ public class BDDPacket {
    * @return A {@link BDD} representing the sentence "this variable is true" for the new variable.
    */
   public BDD allocateBDDBit(String name) {
-    checkArgument(_nextFreeBDDVarIdx < FIRST_PACKET_VAR, "Not enough variables to allocateBDDBit");
+    checkArgument(_nextFreeBDDVarIdx < _endOfFreeSpace, "Not enough variables to allocateBDDBit");
     _bitNames.put(_nextFreeBDDVarIdx, name);
     BDD bdd = _factory.ithVar(_nextFreeBDDVarIdx);
     _nextFreeBDDVarIdx++;
@@ -248,7 +255,8 @@ public class BDDPacket {
    */
   public BDDInteger allocateBDDInteger(String name, int bits, boolean reverse) {
     checkArgument(
-        _nextFreeBDDVarIdx + bits < FIRST_PACKET_VAR, "Not enough variables to allocateBDDInteger");
+        _nextFreeBDDVarIdx + bits < _endOfFreeSpace,
+        "Not enough variables to allocatePacketBDDInteger");
     BDDInteger var = makeFromIndex(_factory, bits, _nextFreeBDDVarIdx, reverse);
     addBitNames(name, bits, _nextFreeBDDVarIdx, false);
     _nextFreeBDDVarIdx += bits;
