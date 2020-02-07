@@ -60,6 +60,21 @@ public abstract class IpAccessListToBdd {
   }
 
   /**
+   * Converts the given {@link AclLineMatchExpr} to a {@link BDD} using the given context.
+   *
+   * <p>Note that if converting multiple {@link IpAccessList ACLs} with the same context,
+   * considerable work can be saved by creating a single {@link IpAccessListToBdd} and reusing it.
+   */
+  public static BDD toBDD(
+      BDDPacket pkt,
+      AclLineMatchExpr expr,
+      Map<String, IpAccessList> aclEnv,
+      Map<String, IpSpace> ipSpaceEnv,
+      BDDSourceManager bddSrcManager) {
+    return new IpAccessListToBddImpl(pkt, bddSrcManager, aclEnv, ipSpaceEnv).toBdd(expr);
+  }
+
+  /**
    * Converts the given {@link IpAccessList} to a {@link BDD}.
    *
    * <p>The {@link IpAccessList} must be self-contained, with no references to source {@link
@@ -72,6 +87,22 @@ public abstract class IpAccessListToBdd {
    */
   public static BDD toBDD(BDDPacket pkt, IpAccessList acl) {
     return toBDD(pkt, acl, ImmutableMap.of(), ImmutableMap.of(), BDDSourceManager.empty(pkt));
+  }
+
+
+  /**
+   * Converts the given {@link AclLineMatchExpr} to a {@link BDD}.
+   *
+   * <p>The {@link IpAccessList} must be self-contained, with no references to source {@link
+   * org.batfish.datamodel.Interface}, named {@link IpAccessList ACLs} or {@link IpSpace IP spaces}.
+   *
+   * <p>Note that if converting multiple {@link IpAccessList ACLs} with the same context,
+   * considerable work can be saved by creating a single {@link IpAccessListToBdd} and reusing it.
+   *
+   * @see #toBDD(BDDPacket, IpAccessList, Map, Map, BDDSourceManager)
+   */
+  public static BDD toBDD(BDDPacket pkt, AclLineMatchExpr expr) {
+    return toBDD(pkt, expr, ImmutableMap.of(), ImmutableMap.of(), BDDSourceManager.empty(pkt));
   }
 
   /** Map of ACL name to {@link PermitAndDenyBdds} of the packets explicitly matched by that ACL */

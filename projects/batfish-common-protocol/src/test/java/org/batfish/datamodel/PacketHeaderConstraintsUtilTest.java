@@ -1,5 +1,7 @@
 package org.batfish.datamodel;
 
+import static org.batfish.common.bdd.BDDOps.andNull;
+import static org.batfish.common.bdd.BDDOps.orNull;
 import static org.batfish.datamodel.PacketHeaderConstraintsUtil.DEFAULT_PACKET_LENGTH;
 import static org.batfish.datamodel.PacketHeaderConstraintsUtil.setDscpValue;
 import static org.batfish.datamodel.PacketHeaderConstraintsUtil.setDstPort;
@@ -10,14 +12,14 @@ import static org.batfish.datamodel.PacketHeaderConstraintsUtil.setPacketLength;
 import static org.batfish.datamodel.PacketHeaderConstraintsUtil.setSrcPort;
 import static org.batfish.datamodel.PacketHeaderConstraintsUtil.setTcpFlags;
 import static org.batfish.datamodel.PacketHeaderConstraintsUtil.toFlow;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedSet;
 import java.util.Collections;
 import net.sf.javabdd.BDD;
+import net.sf.javabdd.BDD;
+import org.batfish.common.bdd.BDDInteger;
 import org.batfish.common.bdd.BDDPacket;
 import org.batfish.datamodel.Flow.Builder;
 import org.junit.Ignore;
@@ -30,8 +32,18 @@ public class PacketHeaderConstraintsUtilTest {
 
   @Rule public ExpectedException thrown = ExpectedException.none();
 
+  private static final BDDPacket PKT = new BDDPacket();
+  private static final BDDInteger SRC_PORT = PKT.getSrcPort();
+  private static final BDDInteger DST_PORT = PKT.getDstPort();
+  private static final BDDInteger ECN = PKT.getEcn();
+
+  private static BDD toBdd(PacketHeaderConstraints pch) {
+    return PacketHeaderConstraintsUtil.toBDD(
+        PKT, pch, UniverseIpSpace.INSTANCE, UniverseIpSpace.INSTANCE);
+  }
+
   @Test
-  public void testToHeaderSpaceConversion() {
+  public void testToBddConversion() {
     PacketHeaderConstraints phc =
         PacketHeaderConstraints.builder()
             .setSrcPorts(
@@ -44,12 +56,12 @@ public class PacketHeaderConstraintsUtilTest {
             .setIpProtocols(Collections.singleton(IpProtocol.TCP))
             .build();
 
-    HeaderSpace hs = PacketHeaderConstraintsUtil.toHeaderSpaceBuilder(phc).build();
-    assertThat(
-        hs.getSrcPorts(), equalTo(ImmutableSortedSet.of(new SubRange(1, 3), new SubRange(5, 6))));
-    assertThat(hs.getDstPorts(), equalTo(Collections.singleton(new SubRange(11, 12))));
-    assertThat(hs.getIpProtocols(), equalTo(Collections.singleton(IpProtocol.TCP)));
-    assertThat(hs.getNotDstPorts(), empty());
+    BDD srcPorts = orNull(SRC_PORT.range(1, 3), SRC_PORT.range(5, 6));
+    BDD dstPorts = DST_PORT.range(11, 12);
+    BDD ecns = ECN.range(1, 3);
+    BDD protos = PKT.getIpProtocol().value(IpProtocol.TCP);
+
+    assertThat(toBdd(phc), equalTo(andNull(srcPorts, dstPorts, ecns, protos)));
   }
 
   @Test

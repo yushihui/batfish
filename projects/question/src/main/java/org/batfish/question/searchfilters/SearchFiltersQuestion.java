@@ -1,6 +1,7 @@
 package org.batfish.question.searchfilters;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static org.batfish.datamodel.acl.AclLineMatchExprs.not;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -9,10 +10,10 @@ import com.google.common.annotations.VisibleForTesting;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.batfish.common.BatfishException;
-import org.batfish.datamodel.HeaderSpace;
 import org.batfish.datamodel.PacketHeaderConstraints;
 import org.batfish.datamodel.PacketHeaderConstraintsUtil;
 import org.batfish.datamodel.UniverseIpSpace;
+import org.batfish.datamodel.acl.AclLineMatchExpr;
 import org.batfish.datamodel.questions.Question;
 import org.batfish.question.SearchFiltersParameters;
 import org.batfish.specifier.AllFiltersFilterSpecifier;
@@ -184,10 +185,9 @@ public final class SearchFiltersQuestion extends Question {
 
   @VisibleForTesting
   @Nonnull
-  HeaderSpace getHeaderSpace() {
-    return PacketHeaderConstraintsUtil.toHeaderSpaceBuilder(_headerConstraints)
-        .setNegate(_complementHeaderSpace)
-        .build();
+  AclLineMatchExpr getHeaderSpace() {
+    AclLineMatchExpr expr = PacketHeaderConstraintsUtil.toAclLineMatchExpr(_headerConstraints);
+    return _complementHeaderSpace ? not(expr) : expr;
   }
 
   @Nonnull

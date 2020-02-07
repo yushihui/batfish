@@ -2,6 +2,10 @@ package org.batfish.datamodel;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.batfish.datamodel.acl.AclLineMatchExprs.and;
+import static org.batfish.datamodel.acl.AclLineMatchExprs.match;
+import static org.batfish.datamodel.acl.AclLineMatchExprs.matchDst;
+import static org.batfish.datamodel.acl.AclLineMatchExprs.matchSrc;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -14,10 +18,10 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import net.sf.javabdd.BDD;
 import org.batfish.common.bdd.BDDPacket;
-import org.batfish.common.bdd.HeaderSpaceToBDD;
+import org.batfish.common.bdd.BDDSourceManager;
+import org.batfish.common.bdd.IpAccessListToBdd;
 import org.batfish.datamodel.Flow.Builder;
 import org.batfish.datamodel.acl.AclLineMatchExpr;
-import org.batfish.datamodel.acl.MatchHeaderSpace;
 
 /** Utility class to convert {@link PacketHeaderConstraints} to other internal representations. */
 @ParametersAreNonnullByDefault
@@ -34,8 +38,7 @@ public class PacketHeaderConstraintsUtil {
    */
   public static AclLineMatchExpr toAclLineMatchExpr(
       PacketHeaderConstraints phc, IpSpace srcIpSpace, IpSpace dstIpSpace) {
-    return new MatchHeaderSpace(
-        toHeaderSpaceBuilder(phc).setSrcIps(srcIpSpace).setDstIps(dstIpSpace).build());
+    return and(toAclLineMatchExpr(phc), matchSrc(srcIpSpace), matchDst(dstIpSpace));
   }
 
   /**
@@ -67,8 +70,12 @@ public class PacketHeaderConstraintsUtil {
       Map<String, IpSpace> namedIpSpaces,
       IpSpace srcIpSpace,
       IpSpace dstIpSpace) {
-    HeaderSpace.Builder b = toHeaderSpaceBuilder(phc).setSrcIps(srcIpSpace).setDstIps(dstIpSpace);
-    return new HeaderSpaceToBDD(pkt, namedIpSpaces).toBDD(b.build());
+    return IpAccessListToBdd.toBDD(
+        pkt,
+        toAclLineMatchExpr(phc, srcIpSpace, dstIpSpace),
+        ImmutableMap.of(),
+        namedIpSpaces,
+        BDDSourceManager.empty(pkt));
   }
 
   private static SortedSet<SubRange> extractSubranges(@Nullable IntegerSpace space) {
@@ -79,11 +86,11 @@ public class PacketHeaderConstraintsUtil {
   }
 
   /**
-   * Convert packet header constraints to a {@link HeaderSpace.Builder}
+   * Convert packet header constraints to an {@link AclLineMatchExpr}
    *
    * <p><b>Does not resolve/set source and destination IPs</b>
    */
-  public static HeaderSpace.Builder toHeaderSpaceBuilder(PacketHeaderConstraints phc) {
+  public static AclLineMatchExpr toAclLineMatchExpr(PacketHeaderConstraints phc) {
     // Note: headerspace builder does not accept nulls, so we have to convert nulls to empty sets
     HeaderSpace.Builder builder =
         HeaderSpace.builder()
@@ -103,7 +110,7 @@ public class PacketHeaderConstraintsUtil {
     if (phc.getEcns() != null) {
       builder.setEcns(ImmutableSortedSet.copyOf(phc.getEcns().enumerate()));
     }
-    return builder;
+    return match(builder.build());
   }
 
   /**

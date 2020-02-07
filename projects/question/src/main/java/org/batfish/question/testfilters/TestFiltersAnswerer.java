@@ -2,6 +2,9 @@ package org.batfish.question.testfilters;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.batfish.datamodel.SetFlowStartLocation.setStartLocation;
+import static org.batfish.datamodel.acl.AclLineMatchExprs.and;
+import static org.batfish.datamodel.acl.AclLineMatchExprs.matchDst;
+import static org.batfish.datamodel.acl.AclLineMatchExprs.matchSrc;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultiset;
@@ -27,13 +30,13 @@ import org.batfish.datamodel.Configuration;
 import org.batfish.datamodel.FilterResult;
 import org.batfish.datamodel.Flow;
 import org.batfish.datamodel.Flow.Builder;
-import org.batfish.datamodel.HeaderSpace;
 import org.batfish.datamodel.HeaderSpaceToFlow;
 import org.batfish.datamodel.IpAccessList;
 import org.batfish.datamodel.IpSpace;
 import org.batfish.datamodel.PacketHeaderConstraints;
 import org.batfish.datamodel.PacketHeaderConstraintsUtil;
 import org.batfish.datamodel.UniverseIpSpace;
+import org.batfish.datamodel.acl.AclLineMatchExpr;
 import org.batfish.datamodel.acl.AclTracer;
 import org.batfish.datamodel.answers.Schema;
 import org.batfish.datamodel.pojo.Node;
@@ -138,8 +141,8 @@ public class TestFiltersAnswerer extends Answerer {
     HeaderSpaceToFlow headerSpaceToFlow =
         new HeaderSpaceToFlow(c.getIpSpaces(), FlowPreference.TESTFILTER);
 
-    HeaderSpace.Builder hsBuilder =
-        PacketHeaderConstraintsUtil.toHeaderSpaceBuilder(constraints).setDstIps(dstIps);
+    AclLineMatchExpr hs =
+        and(PacketHeaderConstraintsUtil.toAclLineMatchExpr(constraints), matchDst(dstIps));
 
     // this will happen if the node has no interfaces, and someone is just testing their ACLs
     if (srcLocations.isEmpty() && question.getStartLocation() == null) {
@@ -147,13 +150,13 @@ public class TestFiltersAnswerer extends Answerer {
         Builder flowBuilder =
             headerSpaceToFlow
                 .getRepresentativeFlow(
-                    hsBuilder
-                        .setSrcIps(
+                    and(
+                        hs,
+                        matchSrc(
                             srcIpAssignments.getEntries().stream()
                                 .findFirst()
                                 .map(Entry::getIpSpace)
-                                .orElse(UniverseIpSpace.INSTANCE))
-                        .build())
+                                .orElse(UniverseIpSpace.INSTANCE))))
                 .get();
 
         flowBuilder.setIngressNode(node);
@@ -174,8 +177,7 @@ public class TestFiltersAnswerer extends Answerer {
       IpSpace srcIps = entry.getIpSpace();
       Flow.Builder flowBuilder;
       try {
-        flowBuilder =
-            headerSpaceToFlow.getRepresentativeFlow(hsBuilder.setSrcIps(srcIps).build()).get();
+        flowBuilder = headerSpaceToFlow.getRepresentativeFlow(and(hs, matchSrc(srcIps))).get();
       } catch (NoSuchElementException e) {
         allProblems.add("cannot get a flow from the specifier");
         continue;

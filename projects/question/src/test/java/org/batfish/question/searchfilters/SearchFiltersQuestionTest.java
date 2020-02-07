@@ -13,7 +13,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import java.io.IOException;
 import java.util.Arrays;
+import net.sf.javabdd.BDD;
 import org.batfish.common.BatfishException;
+import org.batfish.common.bdd.BDDIpProtocol;
+import org.batfish.common.bdd.BDDPacket;
+import org.batfish.common.bdd.IpAccessListToBdd;
 import org.batfish.common.util.BatfishObjectMapper;
 import org.batfish.datamodel.IpProtocol;
 import org.batfish.datamodel.PacketHeaderConstraints;
@@ -63,9 +67,6 @@ public class SearchFiltersQuestionTest {
     assertThat(q.getDataPlane(), equalTo(false));
     assertThat(q.getNodes(), nullValue());
     assertThat(q.getStartLocation(), nullValue());
-    // src/dst IPs NOT stored in headerspace at this stage
-    assertThat(q.getHeaderSpace().getDstIps(), nullValue());
-    assertThat(q.getHeaderSpace().getSrcIps(), nullValue());
     // src/dst IPs are in specifiers at this stage
     SearchFiltersParameters parameters = q.toSearchFiltersParameters();
     assertThat(parameters.getStartLocationSpecifier(), equalTo(LocationSpecifier.ALL_LOCATIONS));
@@ -111,10 +112,14 @@ public class SearchFiltersQuestionTest {
             .setHeaders(PacketHeaderConstraints.builder().setIpProtocols(ipProtocols).build())
             .build();
 
-    assertThat(question.getHeaderSpace().getIpProtocols(), equalTo(ipProtocols));
+    BDDPacket pkt = new BDDPacket();
+    BDDIpProtocol ipProtocol = pkt.getIpProtocol();
+    BDD bdd = ipProtocol.value(IpProtocol.TCP).or(ipProtocol.value(IpProtocol.ICMP));
+
+    assertThat(IpAccessListToBdd.toBDD(pkt, question.getHeaderSpace()), equalTo(bdd));
 
     // test (de)serialization
     question = BatfishObjectMapper.clone(question, SearchFiltersQuestion.class);
-    assertThat(question.getHeaderSpace().getIpProtocols(), equalTo(ipProtocols));
+    assertThat(IpAccessListToBdd.toBDD(pkt,question.getHeaderSpace()), equalTo(bdd));
   }
 }

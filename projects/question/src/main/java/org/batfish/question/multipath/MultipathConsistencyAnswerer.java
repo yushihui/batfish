@@ -1,7 +1,7 @@
 package org.batfish.question.multipath;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static org.batfish.datamodel.acl.AclLineMatchExprs.match;
+import static org.batfish.datamodel.PacketHeaderConstraintsUtil.toAclLineMatchExpr;
 import static org.batfish.question.specifiers.PathConstraintsUtil.createPathConstraints;
 
 import com.google.common.collect.ImmutableList;
@@ -16,7 +16,6 @@ import org.batfish.datamodel.AclIpSpace;
 import org.batfish.datamodel.Flow;
 import org.batfish.datamodel.IpSpace;
 import org.batfish.datamodel.PacketHeaderConstraints;
-import org.batfish.datamodel.PacketHeaderConstraintsUtil;
 import org.batfish.datamodel.PathConstraints;
 import org.batfish.datamodel.UniverseIpSpace;
 import org.batfish.datamodel.acl.AclLineMatchExpr;
@@ -74,10 +73,7 @@ public class MultipathConsistencyAnswerer extends Answerer {
                     .collect(ImmutableList.toImmutableList())),
             UniverseIpSpace.INSTANCE);
     AclLineMatchExpr headerSpace =
-        match(
-            PacketHeaderConstraintsUtil.toHeaderSpaceBuilder(headerConstraints)
-                .setDstIps(dstIps)
-                .build());
+        toAclLineMatchExpr(headerConstraints, UniverseIpSpace.INSTANCE, dstIps);
 
     return new MultipathConsistencyParameters(
         headerSpace,

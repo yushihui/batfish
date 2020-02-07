@@ -2,14 +2,17 @@ package org.batfish.question;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.util.Objects.requireNonNull;
+import static org.batfish.datamodel.acl.AclLineMatchExprs.and;
+import static org.batfish.datamodel.acl.AclLineMatchExprs.matchDst;
+import static org.batfish.datamodel.acl.AclLineMatchExprs.matchSrc;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import javax.annotation.Nonnull;
 import org.batfish.datamodel.AclIpSpace;
 import org.batfish.datamodel.EmptyIpSpace;
-import org.batfish.datamodel.HeaderSpace;
 import org.batfish.datamodel.IpSpace;
+import org.batfish.datamodel.acl.AclLineMatchExpr;
 import org.batfish.specifier.IpSpaceAssignment.Entry;
 import org.batfish.specifier.IpSpaceSpecifier;
 import org.batfish.specifier.LocationSpecifier;
@@ -18,7 +21,7 @@ import org.batfish.specifier.SpecifierContext;
 /** A set of parameters for ACL filter analysis that uses high-level specifiers. */
 public final class SearchFiltersParameters {
   private final @Nonnull IpSpaceSpecifier _destinationIpSpaceSpecifier;
-  private final @Nonnull HeaderSpace _headerSpace;
+  private final @Nonnull AclLineMatchExpr _headerSpace;
   private final @Nonnull LocationSpecifier _startLocationSpecifier;
   private final @Nonnull IpSpaceSpecifier _sourceIpSpaceSpecifier;
 
@@ -26,7 +29,7 @@ public final class SearchFiltersParameters {
       @Nonnull IpSpaceSpecifier destinationIpSpaceSpecifier,
       @Nonnull LocationSpecifier startLocationSpecifier,
       @Nonnull IpSpaceSpecifier sourceIpSpaceSpecifier,
-      @Nonnull HeaderSpace headerSpace) {
+      @Nonnull AclLineMatchExpr headerSpace) {
     _destinationIpSpaceSpecifier = destinationIpSpaceSpecifier;
     _headerSpace = headerSpace;
     _startLocationSpecifier = startLocationSpecifier;
@@ -49,12 +52,11 @@ public final class SearchFiltersParameters {
   }
 
   /** Resolve all parameters and update the underlying headerspace. */
-  public HeaderSpace resolveHeaderspace(SpecifierContext ctx) {
-    return _headerSpace
-        .toBuilder()
-        .setSrcIps(resolveIpSpaceSpecifier(_sourceIpSpaceSpecifier, ctx))
-        .setDstIps(resolveIpSpaceSpecifier(_destinationIpSpaceSpecifier, ctx))
-        .build();
+  public AclLineMatchExpr resolveHeaderspace(SpecifierContext ctx) {
+    return and(
+        _headerSpace,
+        matchSrc(resolveIpSpaceSpecifier(_sourceIpSpaceSpecifier, ctx)),
+        matchDst(resolveIpSpaceSpecifier(_destinationIpSpaceSpecifier, ctx)));
   }
 
   @Nonnull
@@ -77,7 +79,7 @@ public final class SearchFiltersParameters {
 
   public static final class Builder {
     private IpSpaceSpecifier _destinationIpSpaceSpecifier;
-    private HeaderSpace _headerSpace;
+    private AclLineMatchExpr _headerSpace;
     private LocationSpecifier _startLocationSpecifier;
     private IpSpaceSpecifier _sourceIpSpaceSpecifier;
 
@@ -89,7 +91,7 @@ public final class SearchFiltersParameters {
       return this;
     }
 
-    public Builder setHeaderSpace(@Nonnull HeaderSpace headerSpace) {
+    public Builder setHeaderSpace(@Nonnull AclLineMatchExpr headerSpace) {
       _headerSpace = headerSpace;
       return this;
     }
