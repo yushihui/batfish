@@ -1,18 +1,28 @@
 package org.batfish.question.searchfilters;
 
+import static org.batfish.datamodel.IpProtocol.TCP;
 import static org.batfish.datamodel.acl.AclLineMatchExprs.matchDstIp;
 import static org.hamcrest.Matchers.anEmptyMap;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.batfish.common.plugin.IBatfish;
 import org.batfish.datamodel.Configuration;
 import org.batfish.datamodel.ConfigurationFormat;
 import org.batfish.datamodel.ExprAclLine;
+import org.batfish.datamodel.HeaderSpace;
 import org.batfish.datamodel.IpAccessList;
+import org.batfish.datamodel.IpProtocol;
 import org.batfish.datamodel.NetworkFactory;
+import org.batfish.datamodel.PacketHeaderConstraints;
+import org.batfish.datamodel.SubRange;
+import org.batfish.datamodel.TcpFlags;
+import org.batfish.datamodel.TcpFlagsMatchConditions;
+import org.batfish.datamodel.table.TableAnswerElement;
 import org.junit.Test;
 
 /** Tests of {@link SearchFiltersAnswerer}. */
@@ -78,6 +88,36 @@ public class SearchFiltersAnswererTest {
     assertThat(
         answerer.getSpecifiedAcls(bf.getSnapshot(), question),
         equalTo(ImmutableMap.of(c.getHostname(), ImmutableMap.of())));
+  }
+
+  @Test
+  public void test() {
+    IpAccessList acl =
+        IpAccessList.builder()
+            .setName("acl")
+            .setLines(
+                ExprAclLine.acceptingHeaderSpace(
+                    HeaderSpace.builder()
+                        .setIpProtocols(IpProtocol.UDP)
+                        .setDstPorts(SubRange.singleton(259))
+                        .build()))
+            .build();
+    Configuration c = createConfigWithAcls(acl);
+    IBatfish bf = new MockBatfish(c);
+    SearchFiltersQuestion question =
+        SearchFiltersQuestion.builder()
+            .setHeaders(
+                PacketHeaderConstraints.builder()
+                    .setIpProtocols(ImmutableSet.of(TCP))
+                    .setTcpFlags(
+                        ImmutableSet.of(
+                            TcpFlagsMatchConditions.matchAllFlags(
+                                TcpFlags.builder().setAck(false).setRst(false).build())))
+                    .build())
+            .build();
+    SearchFiltersAnswerer answerer = new SearchFiltersAnswerer(question, bf);
+    TableAnswerElement answer = (TableAnswerElement) answerer.answer(bf.getSnapshot());
+    assertThat(answer.getRows().getData(), empty());
   }
 
   private static Configuration createConfigWithAcls(IpAccessList... acls) {
