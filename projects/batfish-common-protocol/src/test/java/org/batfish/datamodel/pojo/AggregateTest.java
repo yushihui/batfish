@@ -18,9 +18,8 @@ public class AggregateTest {
 
   @Test
   public void testJsonSerialization() {
-    Aggregate a = new Aggregate("someAgg", AggregateType.REGION);
-    a.setContents(ImmutableSet.of("id1", "id2"));
-
+    Aggregate a =
+        new Aggregate("someAgg", AggregateType.REGION, "some Agg", ImmutableSet.of("id1", "id2"));
     assertThat(a, equalTo(BatfishObjectMapper.clone(a, Aggregate.class)));
   }
 
@@ -33,12 +32,15 @@ public class AggregateTest {
     diffType.setType(AggregateType.REGION);
     Aggregate cloudWithStuff = BatfishObjectMapper.clone(emptyCloud, Aggregate.class);
     cloudWithStuff.setContents(ImmutableSet.of("stuff"));
+    Aggregate aggregateWithHumanName =
+        new Aggregate("aggr", AggregateType.REGION, "aggr region", ImmutableSet.of());
 
     new EqualsTester()
         .addEqualityGroup(emptyCloud, emptyCloudCloned)
         .addEqualityGroup(diffName)
         .addEqualityGroup(diffType)
         .addEqualityGroup(cloudWithStuff)
+        .addEqualityGroup(aggregateWithHumanName)
         .testEquals();
   }
 }

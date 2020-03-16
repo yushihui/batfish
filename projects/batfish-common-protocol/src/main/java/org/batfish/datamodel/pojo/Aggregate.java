@@ -11,7 +11,10 @@ import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
+/** Represents an aggregate node in the pojo topology */
+@ParametersAreNonnullByDefault
 public class Aggregate extends BfObject {
 
   public enum AggregateType {
@@ -23,20 +26,26 @@ public class Aggregate extends BfObject {
   }
 
   private static final String PROP_CONTENTS = "contents";
+  private static final String PROP_HUMAN_NAME = "humanName";
   private static final String PROP_NAME = "name";
   private static final String PROP_TYPE = "type";
 
   private Set<String> _contents;
-
   private final String _name;
-
   private AggregateType _type;
+  private final String _humanName;
 
   public Aggregate(String name, AggregateType type) {
+    this(name, type, name, new HashSet<>());
+  }
+
+  public Aggregate(
+      String name, AggregateType type, @Nullable String humanName, Set<String> contents) {
     super(makeId(name));
     _name = name;
+    _humanName = humanName;
     _type = type;
-    _contents = new HashSet<>();
+    _contents = contents;
   }
 
   @JsonCreator
@@ -44,14 +53,14 @@ public class Aggregate extends BfObject {
       @Nullable @JsonProperty(PROP_ID) String id,
       @Nullable @JsonProperty(PROP_NAME) String name,
       @Nullable @JsonProperty(PROP_CONTENTS) Set<String> contents,
-      @Nullable @JsonProperty(PROP_TYPE) AggregateType type) {
+      @Nullable @JsonProperty(PROP_TYPE) AggregateType type,
+      @Nullable @JsonProperty(PROP_HUMAN_NAME) String humanName) {
     checkArgument(name != null, "Missing %s", PROP_NAME);
     checkArgument(id != null, "Missing %s", PROP_ID);
     checkArgument(type != null, "Missing %s", PROP_TYPE);
-    Aggregate aggregate = new Aggregate(name, type);
-    aggregate.setType(type);
-    aggregate.setContents(ImmutableSet.copyOf(firstNonNull(contents, ImmutableSet.of())));
-    return aggregate;
+    checkArgument(humanName != null, "Missing %s", PROP_HUMAN_NAME);
+    return new Aggregate(
+        name, type, humanName, ImmutableSet.copyOf(firstNonNull(contents, ImmutableSet.of())));
   }
 
   @JsonProperty(PROP_CONTENTS)
@@ -62,6 +71,11 @@ public class Aggregate extends BfObject {
   @JsonProperty(PROP_NAME)
   public String getName() {
     return _name;
+  }
+
+  @JsonProperty(PROP_HUMAN_NAME)
+  public String getHumanName() {
+    return _humanName;
   }
 
   @JsonProperty(PROP_TYPE)
@@ -93,11 +107,12 @@ public class Aggregate extends BfObject {
     return _type == a._type
         && _name.equals(a._name)
         && _contents.equals(a._contents)
-        && Objects.equals(getId(), a.getId());
+        && Objects.equals(getId(), a.getId())
+        && Objects.equals(_humanName, a._humanName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(_type.ordinal(), _name, _contents, getId());
+    return Objects.hash(_type.ordinal(), _name, _contents, getId(), _humanName);
   }
 }

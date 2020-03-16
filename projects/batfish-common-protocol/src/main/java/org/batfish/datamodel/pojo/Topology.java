@@ -97,40 +97,52 @@ public class Topology extends BfObject {
       // add AWS aggregates; put node in the smallest container we can find for them,
       // and then put that container in their container
       if (configuration.getConfigurationFormat() == ConfigurationFormat.AWS) {
-        putInAwsAggregate(pojoTopology, configuration, pojoNode);
+        putInAwsAggregate(pojoTopology, configuration, pojoNode, configurations);
       }
     }
     return pojoTopology;
   }
 
   private static void putInAwsAggregate(
-      Topology pojoTopology, Configuration configuration, Node pojoNode) {
+      Topology pojoTopology,
+      Configuration configuration,
+      Node pojoNode,
+      Map<String, Configuration> configurationMap) {
+    // get human names for subnet and VPCs from the configuration node, for region it is the same as
+    // aggregate name and for aws root node it is hardcoded to "AWS"
     VendorFamily vendorFamily = configuration.getVendorFamily();
     if (vendorFamily.getAws().getSubnetId() != null) {
       String subnetId = vendorFamily.getAws().getSubnetId();
-      Aggregate subnetAggregate = pojoTopology.getOrCreateAggregate(subnetId, AggregateType.SUBNET);
+      Aggregate subnetAggregate =
+          pojoTopology.getOrCreateAggregate(
+              subnetId, AggregateType.SUBNET, configurationMap.get(subnetId).getHumanName());
       subnetAggregate.getContents().add(pojoNode.getId());
 
       String vpcId = vendorFamily.getAws().getVpcId();
-      Aggregate vpcAggregate = pojoTopology.getOrCreateAggregate(vpcId, AggregateType.VNET);
+      Aggregate vpcAggregate =
+          pojoTopology.getOrCreateAggregate(
+              vpcId, AggregateType.VNET, configurationMap.get(vpcId).getHumanName());
       vpcAggregate.getContents().add(subnetAggregate.getId());
     } else if (vendorFamily.getAws().getVpcId() != null) {
       String vpcId = vendorFamily.getAws().getVpcId();
-      Aggregate vpcAggregate = pojoTopology.getOrCreateAggregate(vpcId, AggregateType.VNET);
+      Aggregate vpcAggregate =
+          pojoTopology.getOrCreateAggregate(
+              vpcId, AggregateType.VNET, configurationMap.get(vpcId).getHumanName());
       vpcAggregate.getContents().add(pojoNode.getId());
-
       String region = vendorFamily.getAws().getRegion();
-      Aggregate regionAggregate = pojoTopology.getOrCreateAggregate(region, AggregateType.REGION);
+      Aggregate regionAggregate =
+          pojoTopology.getOrCreateAggregate(region, AggregateType.REGION, region);
       regionAggregate.getContents().add(vpcAggregate.getId());
     } else if (vendorFamily.getAws().getRegion() != null) {
       String region = vendorFamily.getAws().getRegion();
-      Aggregate regionAggregate = pojoTopology.getOrCreateAggregate(region, AggregateType.REGION);
+      Aggregate regionAggregate =
+          pojoTopology.getOrCreateAggregate(region, AggregateType.REGION, region);
       regionAggregate.getContents().add(pojoNode.getId());
 
-      Aggregate awsAggregate = pojoTopology.getOrCreateAggregate("aws", AggregateType.CLOUD);
+      Aggregate awsAggregate = pojoTopology.getOrCreateAggregate("aws", AggregateType.CLOUD, "AWS");
       awsAggregate.getContents().add(regionAggregate.getId());
     } else {
-      Aggregate awsAggregate = pojoTopology.getOrCreateAggregate("aws", AggregateType.CLOUD);
+      Aggregate awsAggregate = pojoTopology.getOrCreateAggregate("aws", AggregateType.CLOUD, "AWS");
       awsAggregate.getContents().add(pojoNode.getId());
     }
   }
@@ -174,14 +186,14 @@ public class Topology extends BfObject {
     return _nodes;
   }
 
-  public Aggregate getOrCreateAggregate(String name, AggregateType aggType) {
+  public Aggregate getOrCreateAggregate(String name, AggregateType aggType, String humanName) {
     String aggId = Aggregate.makeId(name);
     for (Aggregate aggregate : _aggregates) {
       if (aggregate.getId().equals(aggId)) {
         return aggregate;
       }
     }
-    Aggregate aggregate = new Aggregate(name, aggType);
+    Aggregate aggregate = new Aggregate(name, aggType, humanName, new HashSet<>());
     getAggregates().add(aggregate);
     return aggregate;
   }

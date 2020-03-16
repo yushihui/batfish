@@ -41,7 +41,8 @@ public class TopologyTest {
     assertThat(topo.getTestrigName(), equalTo("testrig"));
     assertThat(topo.getAggregates().size(), equalTo(1));
     assertThat(
-        topo.getOrCreateAggregate("cloud", AggregateType.CLOUD).getContents().size(), equalTo(1));
+        topo.getOrCreateAggregate("cloud", AggregateType.CLOUD, "cloud").getContents().size(),
+        equalTo(1));
     assertThat(topo.getInterfaces().size(), equalTo(1));
     assertThat(topo.getLinks().size(), equalTo(1));
     assertThat(topo.getNodes().size(), equalTo(1));
