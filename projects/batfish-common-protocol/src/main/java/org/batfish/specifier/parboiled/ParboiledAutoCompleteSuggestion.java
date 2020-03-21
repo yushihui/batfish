@@ -35,7 +35,11 @@ final class ParboiledAutoCompleteSuggestion {
   /** Actual text of the suggestion */
   @Nonnull private final String _text;
 
+  /** Short text to show the user how to complete a partial suggestion. */
   @Nullable private final String _hint;
+
+  /** Some helpful text about what the suggestion specifies */
+  @Nullable private final String _description;
 
   ParboiledAutoCompleteSuggestion(String text, int insertionIndex, Anchor.Type anchorType) {
     this(text, anchorType.getHint(), insertionIndex, anchorType);
@@ -43,10 +47,20 @@ final class ParboiledAutoCompleteSuggestion {
 
   ParboiledAutoCompleteSuggestion(
       String text, @Nullable String hint, int insertionIndex, Anchor.Type anchorType) {
+    this(text, hint, insertionIndex, anchorType, null);
+  }
+
+  ParboiledAutoCompleteSuggestion(
+      String text,
+      @Nullable String hint,
+      int insertionIndex,
+      Anchor.Type anchorType,
+      @Nullable String description) {
     _text = text;
     _hint = hint;
     _insertionIndex = insertionIndex;
     _anchorType = anchorType;
+    _description = description;
   }
 
   @Override
@@ -62,6 +76,11 @@ final class ParboiledAutoCompleteSuggestion {
   @Nonnull
   public Anchor.Type getAnchorType() {
     return _anchorType;
+  }
+
+  @Nullable
+  public String getDescription() {
+    return _description;
   }
 
   public int getInsertionIndex() {
@@ -83,7 +102,10 @@ final class ParboiledAutoCompleteSuggestion {
     return AutocompleteSuggestion.builder()
         .setText(suggestion._text)
         .setInsertionIndex(suggestion._insertionIndex)
-        .setDescription(completeDescriptionIfNeeded(suggestion))
+        .setDescription(
+            suggestion._description != null
+                ? suggestion._description
+                : completeDescriptionIfNeeded(suggestion))
         .setHint(suggestion._hint)
         .setSuggestionType(suggestion._anchorType.getSuggestionType())
         .build();
