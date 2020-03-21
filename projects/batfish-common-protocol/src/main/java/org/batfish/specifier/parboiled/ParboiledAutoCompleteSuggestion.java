@@ -69,6 +69,8 @@ final class ParboiledAutoCompleteSuggestion {
       return false;
     }
     return Objects.equals(_anchorType, ((ParboiledAutoCompleteSuggestion) o)._anchorType)
+        && Objects.equals(_description, ((ParboiledAutoCompleteSuggestion) o)._description)
+        && Objects.equals(_hint, ((ParboiledAutoCompleteSuggestion) o)._hint)
         && Objects.equals(_insertionIndex, ((ParboiledAutoCompleteSuggestion) o)._insertionIndex)
         && Objects.equals(_text, ((ParboiledAutoCompleteSuggestion) o)._text);
   }
@@ -94,7 +96,7 @@ final class ParboiledAutoCompleteSuggestion {
 
   @Override
   public int hashCode() {
-    return Objects.hash(_anchorType, _insertionIndex, _text);
+    return Objects.hash(_anchorType, _description, _hint, _insertionIndex, _text);
   }
 
   static AutocompleteSuggestion toAutoCompleteSuggestion(
@@ -106,7 +108,7 @@ final class ParboiledAutoCompleteSuggestion {
             suggestion._description != null
                 ? suggestion._description
                 : completeDescriptionIfNeeded(suggestion))
-        .setHint(suggestion._hint)
+        .setHint(suggestion._hint != null ? suggestion._hint : suggestion._anchorType.getHint())
         .setSuggestionType(suggestion._anchorType.getSuggestionType())
         .build();
   }

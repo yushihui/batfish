@@ -511,7 +511,9 @@ public class ParboiledAutoCompleteTest {
     assertThat(
         getTestPAC(query, metadata).run(),
         allOf(
-            hasItem(new ParboiledAutoCompleteSuggestion(node1, node1HumanName, 0, NODE_NAME)),
+            hasItem(
+                new ParboiledAutoCompleteSuggestion(
+                    node1, NODE_NAME.getHint(), 0, NODE_NAME, node1HumanName)),
             hasItem(
                 new ParboiledAutoCompleteSuggestion(node2, NODE_NAME.getHint(), 0, NODE_NAME))));
   }
@@ -534,7 +536,9 @@ public class ParboiledAutoCompleteTest {
             .build();
     assertThat(
         getTestPAC(query, metadata).run(),
-        allOf(hasItem(new ParboiledAutoCompleteSuggestion(node1, node1HumanName, 0, NODE_NAME))));
+        allOf(
+            hasItem(
+                new ParboiledAutoCompleteSuggestion(node1, null, 0, NODE_NAME, node1HumanName))));
   }
 
   /**
