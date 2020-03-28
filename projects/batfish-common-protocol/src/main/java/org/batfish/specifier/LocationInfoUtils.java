@@ -156,7 +156,7 @@ public final class LocationInfoUtils {
       LocationInfo locationInfo, IpSpace snapshotOwnedIps) {
     return new LocationInfo(
         locationInfo.isSource(),
-        checkNotNull(difference(locationInfo.getSourceIps(), snapshotOwnedIps)),
+        checkNotNull(difference(locationInfo.getSourceIpSpace(), snapshotOwnedIps)),
         locationInfo.getArpIps());
   }
 

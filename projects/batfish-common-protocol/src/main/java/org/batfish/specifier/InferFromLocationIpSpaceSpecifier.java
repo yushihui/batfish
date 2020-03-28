@@ -16,7 +16,7 @@ public final class InferFromLocationIpSpaceSpecifier implements IpSpaceSpecifier
   public IpSpaceAssignment resolve(Set<Location> locations, SpecifierContext ctxt) {
     IpSpaceAssignment.Builder builder = IpSpaceAssignment.builder();
     locations.forEach(
-        location -> builder.assign(location, ctxt.getLocationInfo(location).getSourceIps()));
+        location -> builder.assign(location, ctxt.getLocationInfo(location).getSourceIpSpace()));
     return builder.build();
   }
 }

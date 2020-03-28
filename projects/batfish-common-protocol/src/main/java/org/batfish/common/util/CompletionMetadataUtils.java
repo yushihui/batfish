@@ -28,9 +28,14 @@ public final class CompletionMetadataUtils {
 
   private CompletionMetadataUtils() {}
 
-  /** We will add these well-known IPs to assist with autocompletion */
   public static Map<Ip, String> WELL_KNOWN_IPS =
-      ImmutableMap.of(Ip.parse("8.8.8.8"), "Google DNS", Ip.parse("1.1.1.1"), "Cloudflare DNS");
+      ImmutableMap.of(
+          WellKnownIps.GOOGLE_DNS,
+          "Google DNS",
+          WellKnownIps.CLOUDFLARE_DNS,
+          "Cloudflare DNS",
+          WellKnownIps.DOC_RANGE_203,
+          "Documentation range");
 
   public static Set<String> getFilterNames(Map<String, Configuration> configurations) {
     ImmutableSet.Builder<String> filterNames = ImmutableSet.builder();
@@ -227,7 +232,7 @@ public final class CompletionMetadataUtils {
         .filter(
             entry -> {
               LocationInfo info = entry.getValue();
-              return info.isSource() && !toBdd.visit(info.getSourceIps()).isZero();
+              return info.isSource() && !toBdd.visit(info.getSourceIpSpace()).isZero();
             })
         .map(Entry::getKey)
         .collect(ImmutableSet.toImmutableSet());

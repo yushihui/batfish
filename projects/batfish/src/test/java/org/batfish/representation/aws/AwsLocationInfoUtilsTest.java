@@ -36,7 +36,7 @@ public class AwsLocationInfoUtilsTest {
     LocationInfo info = instanceInterfaceLocationInfo(IFACE);
     assertTrue(info.isSource());
     assertThat(
-        info.getSourceIps(),
+        info.getSourceIpSpace(),
         allOf(
             containsIp(Ip.parse("1.1.1.1")),
             containsIp(Ip.parse("2.2.2.2")),
@@ -50,7 +50,7 @@ public class AwsLocationInfoUtilsTest {
     LocationInfo info = subnetInterfaceLocationInfo(IFACE);
     assertFalse(info.isSource());
     assertThat(
-        info.getSourceIps(),
+        info.getSourceIpSpace(),
         allOf(
             containsIp(Ip.parse("1.1.1.1")),
             containsIp(Ip.parse("2.2.2.2")),
@@ -64,7 +64,7 @@ public class AwsLocationInfoUtilsTest {
     LocationInfo info = subnetInterfaceLinkLocationInfo(IFACE);
     assertFalse(info.isSource());
     assertThat(
-        info.getSourceIps(),
+        info.getSourceIpSpace(),
         allOf(containsIp(Ip.parse("1.1.1.2")), containsIp(Ip.parse("2.2.2.3"))));
     assertThat(info.getArpIps(), equalTo(EmptyIpSpace.INSTANCE));
   }

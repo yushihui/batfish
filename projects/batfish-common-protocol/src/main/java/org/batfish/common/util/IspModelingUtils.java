@@ -85,7 +85,9 @@ public final class IspModelingUtils {
           UniverseIpSpace.INSTANCE,
           // pretend there's a neighbor that responds to ARP, so we get EXITS_NETWORK instead of
           // NEIGHBOR_UNREACHABLE for traffic routed to the internet
-          INTERNET_OUT_SUBNET.getLastHostIp().toIpSpace());
+          INTERNET_OUT_SUBNET.getLastHostIp().toIpSpace(),
+          // use these source IPs when we need to pick a specific source IP
+          ImmutableList.of(WellKnownIps.DOC_RANGE_203));
 
   static final String EXPORT_POLICY_ON_INTERNET = "exportPolicyOnInternet";
   static final String EXPORT_POLICY_ON_ISP_TO_CUSTOMERS = "exportPolicyOnIspToCustomers";

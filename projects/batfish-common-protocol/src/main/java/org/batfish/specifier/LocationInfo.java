@@ -1,20 +1,39 @@
 package org.batfish.specifier;
 
+import static org.parboiled.common.Preconditions.checkArgument;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nullable;
+import org.batfish.datamodel.Ip;
 import org.batfish.datamodel.IpSpace;
 
 /** Information about whether/how to treat a location as a source or sink of traffic. */
 public final class LocationInfo implements Serializable {
   private final boolean _isSource;
-  private final IpSpace _sourceIps;
+  private final IpSpace _sourceIpSpace;
   private final IpSpace _arpIps;
+  private final List<Ip> _preferredSourceIps;
 
-  public LocationInfo(boolean isSource, IpSpace sourceIps, IpSpace arpIps) {
+  public LocationInfo(boolean isSource, IpSpace sourceIpSpace, IpSpace arpIps) {
+    this(isSource, sourceIpSpace, arpIps, ImmutableList.of());
+  }
+
+  public LocationInfo(
+      boolean isSource, IpSpace sourceIpSpace, IpSpace arpIps, List<Ip> preferredSourceIps) {
+    preferredSourceIps.forEach(
+        ip ->
+            checkArgument(
+                sourceIpSpace.containsIp(ip, ImmutableMap.of()),
+                "Source IP space does not contain preferred source IP %s",
+                ip));
     _isSource = isSource;
-    _sourceIps = sourceIps;
+    _sourceIpSpace = sourceIpSpace;
     _arpIps = arpIps;
+    _preferredSourceIps = ImmutableList.copyOf(preferredSourceIps);
   }
 
   @Override
@@ -27,13 +46,14 @@ public final class LocationInfo implements Serializable {
     }
     LocationInfo other = (LocationInfo) o;
     return _isSource == other._isSource
-        && _sourceIps.equals(other._sourceIps)
-        && _arpIps.equals(other._arpIps);
+        && _sourceIpSpace.equals(other._sourceIpSpace)
+        && _arpIps.equals(other._arpIps)
+        && _preferredSourceIps.equals(other._preferredSourceIps);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(_isSource, _sourceIps, _arpIps);
+    return Objects.hash(_isSource, _sourceIpSpace, _arpIps, _preferredSourceIps);
   }
 
   /**
@@ -54,8 +74,8 @@ public final class LocationInfo implements Serializable {
    * parameters. For non-sources, these IPs will be used when the user explicitly specifies to use
    * the location as a source but does not explicitly specify the source IPs to use.
    */
-  public IpSpace getSourceIps() {
-    return _sourceIps;
+  public IpSpace getSourceIpSpace() {
+    return _sourceIpSpace;
   }
 
   /**
@@ -66,5 +86,13 @@ public final class LocationInfo implements Serializable {
    */
   public IpSpace getArpIps() {
     return _arpIps;
+  }
+
+  /**
+   * Source IP addresses to prefer when this location is used in queries like traceroute that need a
+   * single IP. Each preferred IP is guaranteed to be in the source IP space.
+   */
+  public List<Ip> getPreferredSourceIps() {
+    return _preferredSourceIps;
   }
 }

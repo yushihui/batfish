@@ -75,7 +75,7 @@ public class LocationInfoUtilsTest {
       LocationInfo info = locationInfo.get(iloc);
       assertFalse(info.isSource());
       // source Ips taken from interfaceOwnedIps.
-      assertThat(info.getSourceIps(), containsIp(ip1));
+      assertThat(info.getSourceIpSpace(), containsIp(ip1));
       assertEquals(EmptyIpSpace.INSTANCE, info.getArpIps());
     }
 
@@ -84,7 +84,7 @@ public class LocationInfoUtilsTest {
       LocationInfo info = locationInfo.get(linkLoc);
       assertTrue(info.isSource());
       // source IPs computed from i1's concrete address, excluding the snapshot-owned IP ip1
-      assertThat(info.getSourceIps(), allOf(not(containsIp(ip1)), containsIp(ip2)));
+      assertThat(info.getSourceIpSpace(), allOf(not(containsIp(ip1)), containsIp(ip2)));
       assertThat(info.getArpIps(), containsIp(ip3));
     }
   }
@@ -126,7 +126,7 @@ public class LocationInfoUtilsTest {
     {
       LocationInfo info = locationInfo.get(iLoc);
       assertTrue(info.isSource());
-      assertThat(info.getSourceIps(), allOf(containsIp(ip1), containsIp(ip2)));
+      assertThat(info.getSourceIpSpace(), allOf(containsIp(ip1), containsIp(ip2)));
       assertThat(info.getArpIps(), allOf(containsIp(ip1), containsIp(ip2)));
     }
     // linkLoc
@@ -134,7 +134,7 @@ public class LocationInfoUtilsTest {
       LocationInfo info = locationInfo.get(linkLoc);
       assertTrue(info.isSource());
       // source IPs taken from vendor-supplied location info
-      assertThat(info.getSourceIps(), allOf(not(containsIp(ip1)), containsIp(ip2)));
+      assertThat(info.getSourceIpSpace(), allOf(not(containsIp(ip1)), containsIp(ip2)));
       assertThat(info.getArpIps(), allOf(containsIp(ip1), containsIp(ip2)));
     }
   }
