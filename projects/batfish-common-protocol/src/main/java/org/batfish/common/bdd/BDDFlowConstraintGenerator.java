@@ -12,6 +12,7 @@ import org.batfish.datamodel.IcmpType;
 import org.batfish.datamodel.Ip;
 import org.batfish.datamodel.IpProtocol;
 import org.batfish.datamodel.NamedPort;
+import org.batfish.datamodel.Prefix;
 
 /** This class generates common useful flow constraints as BDDs. */
 public final class BDDFlowConstraintGenerator {
@@ -133,13 +134,14 @@ public final class BDDFlowConstraintGenerator {
   }
 
   private BDD isPrivateIp(BDDInteger ipInteger) {
+    IpSpaceToBDD toBdd = new IpSpaceToBDD(ipInteger);
     return _bddOps.or(
-        ipInteger.range(Ip.parse("10.0.0.0").asLong(), Ip.parse("10.255.255.255").asLong()),
-        ipInteger.range(Ip.parse("172.16.0.0").asLong(), Ip.parse("172.255.255.255").asLong()),
-        ipInteger.range(Ip.parse("192.168.0.0").asLong(), Ip.parse("192.168.255.255").asLong()));
+        toBdd.toBDD(Prefix.parse("10.0.0.0/8")),
+        toBdd.toBDD(Prefix.parse("172.16.0.0/12")),
+        toBdd.toBDD(Prefix.parse("192.168.0.0/16")));
   }
 
-  private List<BDD> ipPreferences(BDDInteger ipInteger) {
+  public static List<BDD> ipPreferences(BDDInteger ipInteger) {
     return ImmutableList.of(
         // First, one of the special IPs.
         ipInteger.value(Ip.parse("8.8.8.8").asLong()),
