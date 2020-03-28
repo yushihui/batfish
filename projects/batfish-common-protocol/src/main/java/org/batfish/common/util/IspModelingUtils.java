@@ -30,6 +30,7 @@ import org.batfish.common.BatfishLogger;
 import org.batfish.common.Warnings;
 import org.batfish.common.topology.Layer1Edge;
 import org.batfish.common.util.IspModel.Remote;
+import org.batfish.datamodel.AclIpSpace;
 import org.batfish.datamodel.BgpActivePeerConfig;
 import org.batfish.datamodel.BgpPeerConfig;
 import org.batfish.datamodel.BgpProcess;
@@ -52,7 +53,6 @@ import org.batfish.datamodel.PrefixRange;
 import org.batfish.datamodel.PrefixSpace;
 import org.batfish.datamodel.RoutingProtocol;
 import org.batfish.datamodel.StaticRoute;
-import org.batfish.datamodel.UniverseIpSpace;
 import org.batfish.datamodel.Vrf;
 import org.batfish.datamodel.bgp.Ipv4UnicastAddressFamily;
 import org.batfish.datamodel.collections.NodeInterfacePair;
@@ -77,12 +77,24 @@ import org.batfish.specifier.LocationInfo;
 public final class IspModelingUtils {
   static final Prefix INTERNET_OUT_SUBNET = Prefix.parse("240.254.254.0/30");
 
+  // null routing private address space at the internet prevents "INSUFFICIENT_INFO" for networks
+  // that use this space internally
+  public static final Set<Prefix> INTERNET_NULL_ROUTED_PREFIXES =
+      ImmutableSet.of(
+          Prefix.parse("10.0.0.0/8"),
+          Prefix.parse("172.16.0.0/12"),
+          Prefix.parse("192.168.0.0/16"));
+
   static final LocationInfo INTERNET_OUT_INTERFACE_LINK_LOCATION_INFO =
       new LocationInfo(
           // use as a source
           true,
-          // pick any source IP (excluding snapshot owned IPs)
-          UniverseIpSpace.INSTANCE,
+          // pick any source IP from public IP space (excluding snapshot owned IPs)
+          AclIpSpace.union(
+                  INTERNET_NULL_ROUTED_PREFIXES.stream()
+                      .map(Prefix::toIpSpace)
+                      .collect(ImmutableList.toImmutableList()))
+              .complement(),
           // pretend there's a neighbor that responds to ARP, so we get EXITS_NETWORK instead of
           // NEIGHBOR_UNREACHABLE for traffic routed to the internet
           INTERNET_OUT_SUBNET.getLastHostIp().toIpSpace());
@@ -96,14 +108,6 @@ public final class IspModelingUtils {
   public static final String INTERNET_OUT_INTERFACE = "out";
   static final Ip LINK_LOCAL_IP = Ip.parse("169.254.0.1");
   static final LinkLocalAddress LINK_LOCAL_ADDRESS = LinkLocalAddress.of(LINK_LOCAL_IP);
-
-  // null routing private address space at the internet prevents "INSUFFICIENT_INFO" for networks
-  // that use this space internally
-  public static final Set<Prefix> INTERNET_NULL_ROUTED_PREFIXES =
-      ImmutableSet.of(
-          Prefix.parse("10.0.0.0/8"),
-          Prefix.parse("172.16.0.0/12"),
-          Prefix.parse("192.168.0.0/16"));
 
   /** Use this cost to install static routes on ISP nodes for prefixes originated to the Internet */
   static final int HIGH_ADMINISTRATIVE_COST = 32767; // maximum possible
