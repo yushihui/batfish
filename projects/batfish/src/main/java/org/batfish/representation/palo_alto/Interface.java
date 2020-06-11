@@ -9,7 +9,6 @@ import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.batfish.datamodel.ConcreteInterfaceAddress;
 
 /** PAN datamodel component containing interface configuration */
 @ParametersAreNonnullByDefault
@@ -27,16 +26,27 @@ public final class Interface implements Serializable {
   public static final int DEFAULT_INTERFACE_MTU = 1500;
 
   private boolean _active;
-  @Nullable private ConcreteInterfaceAddress _address;
+  /** May be an IP address, prefix, or address-object reference */
+  @Nullable private InterfaceAddress _address;
+
   @Nullable private String _aggregateGroup;
-  @Nonnull private final Set<ConcreteInterfaceAddress> _allAddresses;
+
+  @Nonnull private final Set<InterfaceAddress> _allAddresses;
+
   @Nullable private String _comment;
+
   @Nullable private Integer _mtu;
+
   @Nonnull private final String _name;
+
   @Nullable private Interface _parent;
+
   @Nullable private Integer _tag;
+
   @Nonnull private final Type _type;
+
   @Nonnull private final SortedMap<String, Interface> _units;
+
   @Nullable private Zone _zone;
 
   public Interface(String name, Type type) {
@@ -52,7 +62,7 @@ public final class Interface implements Serializable {
     return _active;
   }
 
-  public void addAddress(ConcreteInterfaceAddress address) {
+  public void addAddress(InterfaceAddress address) {
     if (_address == null) {
       _address = address;
     }
@@ -60,7 +70,7 @@ public final class Interface implements Serializable {
   }
 
   @Nullable
-  public ConcreteInterfaceAddress getAddress() {
+  public InterfaceAddress getAddress() {
     return _address;
   }
 
@@ -74,7 +84,7 @@ public final class Interface implements Serializable {
   }
 
   @Nonnull
-  public Set<ConcreteInterfaceAddress> getAllAddresses() {
+  public Set<InterfaceAddress> getAllAddresses() {
     return Collections.unmodifiableSet(_allAddresses);
   }
 

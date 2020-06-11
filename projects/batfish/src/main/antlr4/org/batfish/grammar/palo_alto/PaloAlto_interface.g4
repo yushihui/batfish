@@ -186,7 +186,7 @@ sniel3_common
 
 sniel3_ip
 :
-    IP address = interface_address
+    IP address = interface_address_or_reference
 ;
 
 sniel3_mtu
@@ -221,7 +221,7 @@ sniel3_units
 
 snil_ip
 :
-    IP address = interface_address
+    IP address = interface_address_or_reference
 ;
 
 snil_unit

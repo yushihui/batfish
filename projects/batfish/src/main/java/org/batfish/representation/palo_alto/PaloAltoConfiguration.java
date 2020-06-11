@@ -1207,6 +1207,55 @@ public class PaloAltoConfiguration extends VendorConfiguration {
     }
   }
 
+  /** Converts interface address {@code String} to {@code IpSpace} */
+  @Nullable
+  @SuppressWarnings("fallthrough")
+  private ConcreteInterfaceAddress ifaceAddrToConcreteIfaceAddr(
+      @Nullable InterfaceAddress address, Vsys vsys, Warnings w) {
+    if (address == null) {
+      return null;
+    }
+    String addressText = address.getValue();
+    // Palo Alto allows object references that look like IP addresses, ranges, etc.
+    // Devices use objects over constants when possible, so, check to see if there is a matching
+    // group or object regardless of the type of endpoint we're expecting.
+    if (vsys.getAddressObjects().containsKey(addressText)) {
+      AddressObject addrObject = vsys.getAddressObjects().get(addressText);
+      ConcreteInterfaceAddress concreteIfaceAddr = addrObject.getConcreteInterfaceAddress();
+      if (concreteIfaceAddr != null) {
+        return concreteIfaceAddr;
+      }
+      // If we cannot build a concrete interface address from the address object, assume we're
+      // referencing some other object
+    }
+    switch (vsys.getNamespaceType()) {
+      case LEAF:
+        if (_shared != null) {
+          return ifaceAddrToConcreteIfaceAddr(address, _shared, w);
+        }
+        // fall-through
+      case SHARED:
+        if (_panorama != null) {
+          return ifaceAddrToConcreteIfaceAddr(address, _panorama, w);
+        }
+        // fall-through
+      default:
+        // No named object found matching this endpoint, so parse the endpoint value as is
+        switch (address.getType()) {
+          case IP_ADDRESS:
+            return ConcreteInterfaceAddress.create(Ip.parse(addressText), Prefix.MAX_PREFIX_LENGTH);
+          case IP_PREFIX:
+            return ConcreteInterfaceAddress.parse(addressText);
+          case REFERENCE:
+            // Rely on undefined references to surface this issue (address reference not defined)
+            return null;
+          default:
+            w.redFlag("Could not convert InterfaceAddress to ConcreteInterfaceAddress: " + address);
+            return null;
+        }
+    }
+  }
+
   /** Converts {@link RuleEndpoint} to IP {@code RangeSet} */
   @Nonnull
   @SuppressWarnings("fallthrough")
@@ -1295,10 +1344,21 @@ public class PaloAltoConfiguration extends VendorConfiguration {
     if (mtu != null) {
       newIface.setMtu(mtu);
     }
-    newIface.setAddress(iface.getAddress());
-    if (iface.getAddress() != null) {
+
+    ConcreteInterfaceAddress concreteAddress =
+        ifaceAddrToConcreteIfaceAddr(
+            iface.getAddress(), _virtualSystems.get(DEFAULT_VSYS_NAME), _w);
+    if (concreteAddress != null) {
+      newIface.setAddress(concreteAddress);
       newIface.setSecondaryAddresses(
-          Sets.difference(iface.getAllAddresses(), ImmutableSet.of(iface.getAddress())));
+          Sets.difference(
+              iface.getAllAddresses().stream()
+                  .map(
+                      a ->
+                          ifaceAddrToConcreteIfaceAddr(
+                              a, _virtualSystems.get(DEFAULT_VSYS_NAME), _w))
+                  .collect(Collectors.toSet()),
+              ImmutableSet.of(concreteAddress)));
     }
     newIface.setActive(iface.getActive());
     newIface.setDescription(iface.getComment());
@@ -1567,6 +1627,7 @@ public class PaloAltoConfiguration extends VendorConfiguration {
       Optional.ofNullable(peer.getLocalInterface())
           .map(_interfaces::get)
           .map(Interface::getAddress)
+          .map(a -> ifaceAddrToConcreteIfaceAddr(a, _virtualSystems.get(DEFAULT_VSYS_NAME), _w))
           .map(ConcreteInterfaceAddress::getIp)
           .ifPresent(peerB::setLocalIp);
     }

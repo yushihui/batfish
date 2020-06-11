@@ -161,7 +161,7 @@ public class AddressGroupTest {
         equalTo(ImmutableRangeSet.of(Range.singleton(Ip.ZERO))));
 
     // For address object containing a prefix
-    addressObj.setPrefix(Prefix.ZERO);
+    addressObj.setPrefix(Prefix.ZERO, Ip.ZERO);
     assertThat(
         group.getIpRangeSet(addrObjects, groupMap),
         equalTo(ImmutableRangeSet.of(Range.closed(Ip.ZERO, Ip.MAX))));

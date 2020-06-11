@@ -1216,22 +1216,35 @@ public final class PaloAltoGrammarTest {
     String eth1_2 = "ethernet1/2";
     String eth1_3 = "ethernet1/3";
     String eth1_3_11 = "ethernet1/3.11";
+    String eth1_4 = "ethernet1/4";
+    String eth1_5 = "ethernet1/5";
+    String eth1_6 = "ethernet1/6";
     String eth1_21 = "ethernet1/21";
     String loopback = "loopback";
     Configuration c = parseConfig(hostname);
 
     assertThat(
         c.getAllInterfaces().keySet(),
-        containsInAnyOrder(eth1_1, eth1_2, eth1_3, eth1_3_11, eth1_21, loopback));
+        containsInAnyOrder(
+            eth1_1, eth1_2, eth1_3, eth1_3_11, eth1_4, eth1_5, eth1_6, eth1_21, loopback));
 
     // Confirm interface MTU is extracted
     assertThat(c, hasInterface(eth1_1, hasMtu(9001)));
 
-    // Confirm address is extracted
+    // Confirm addresses are extracted, even when specified as address-obejct reference
     assertThat(
         c,
         hasInterface(
             eth1_1, hasAllAddresses(contains(ConcreteInterfaceAddress.parse("1.1.1.1/24")))));
+    assertThat(
+        c,
+        hasInterface(
+            eth1_4, hasAllAddresses(contains(ConcreteInterfaceAddress.parse("10.10.11.10/32")))));
+    assertThat(
+        c,
+        hasInterface(
+            eth1_5, hasAllAddresses(contains(ConcreteInterfaceAddress.parse("10.10.12.10/24")))));
+    assertThat(c, hasInterface(eth1_6, hasAllAddresses(emptyIterable())));
     assertThat(
         c,
         hasInterface(

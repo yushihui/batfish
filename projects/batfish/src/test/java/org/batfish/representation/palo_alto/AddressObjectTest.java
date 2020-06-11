@@ -24,7 +24,7 @@ public class AddressObjectTest {
     assertThat(a.getType(), equalTo(Type.IP));
 
     // Setting prefix clears members and updates type
-    a.setPrefix(Prefix.ZERO);
+    a.setPrefix(Prefix.ZERO, Ip.ZERO);
     assertNull(a.getIp());
     assertThat(a.getPrefix(), equalTo(Prefix.ZERO));
     assertThat(a.getType(), equalTo(Type.PREFIX));
