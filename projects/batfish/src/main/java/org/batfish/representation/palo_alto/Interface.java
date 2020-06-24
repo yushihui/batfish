@@ -35,6 +35,8 @@ public final class Interface implements Serializable {
 
   @Nullable private String _comment;
 
+  @Nullable private Boolean _ha;
+
   @Nullable private Integer _mtu;
 
   @Nonnull private final String _name;
@@ -91,6 +93,15 @@ public final class Interface implements Serializable {
   @Nullable
   public String getComment() {
     return _comment;
+  }
+
+  @Nullable
+  public Boolean getHa() {
+    return _ha;
+  }
+
+  public void setHa(@Nullable Boolean ha) {
+    _ha = ha;
   }
 
   @Nullable
