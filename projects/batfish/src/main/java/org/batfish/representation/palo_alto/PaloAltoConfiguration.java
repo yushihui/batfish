@@ -1168,10 +1168,10 @@ public class PaloAltoConfiguration extends VendorConfiguration {
           case IP_PREFIX:
             return ConcreteInterfaceAddress.parse(addressText);
           case REFERENCE:
-            // Rely on undefined references to surface this issue (address reference not defined)
-            return null;
           default:
-            w.redFlag("Could not convert InterfaceAddress to ConcreteInterfaceAddress: " + address);
+            w.redFlag(
+                String.format(
+                    "Could not convert InterfaceAddress to ConcreteInterfaceAddress: %s", address));
             return null;
         }
     }
@@ -2276,9 +2276,17 @@ public class PaloAltoConfiguration extends VendorConfiguration {
         PaloAltoStructureUsage.SERVICE_GROUP_MEMBER,
         PaloAltoStructureUsage.SECURITY_RULE_SERVICE);
 
-    // Handle marking rule endpoints
-    // First, handle those which may or may not be referencing objects (e.g. "1.2.3.4" may be IP
+    // Handle interface addresses
+    markAbstractStructureFromUnknownNamespace(
+        PaloAltoStructureType.ADDRESS_LIKE,
+        ImmutableList.of(PaloAltoStructureType.ADDRESS_OBJECT),
+        false,
+        PaloAltoStructureUsage.LAYER3_INTERFACE_ADDRESS,
+        PaloAltoStructureUsage.LOOPBACK_INTERFACE_ADDRESS);
+
+    // First, handle things which may or may not be referencing objects (e.g. "1.2.3.4" may be IP
     // address or a named object)
+    // Handle marking rule endpoints
     markAbstractStructureFromUnknownNamespace(
         PaloAltoStructureType.ADDRESS_LIKE_OR_NONE,
         ImmutableList.of(
@@ -2288,6 +2296,14 @@ public class PaloAltoConfiguration extends VendorConfiguration {
         true,
         PaloAltoStructureUsage.SECURITY_RULE_DESTINATION,
         PaloAltoStructureUsage.SECURITY_RULE_SOURCE);
+    // Handle interface addresses
+    markAbstractStructureFromUnknownNamespace(
+        PaloAltoStructureType.ADDRESS_LIKE_OR_NONE,
+        ImmutableList.of(PaloAltoStructureType.ADDRESS_OBJECT),
+        true,
+        PaloAltoStructureUsage.LAYER3_INTERFACE_ADDRESS,
+        PaloAltoStructureUsage.LOOPBACK_INTERFACE_ADDRESS);
+
     // Next, handle address object references which are definitely referencing objects
     markAbstractStructureFromUnknownNamespace(
         PaloAltoStructureType.ADDRESS_LIKE,

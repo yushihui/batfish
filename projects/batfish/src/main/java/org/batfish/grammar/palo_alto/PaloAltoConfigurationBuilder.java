@@ -33,7 +33,9 @@ import static org.batfish.representation.palo_alto.PaloAltoStructureUsage.BGP_PE
 import static org.batfish.representation.palo_alto.PaloAltoStructureUsage.ETHERNET_AGGREGATE_GROUP;
 import static org.batfish.representation.palo_alto.PaloAltoStructureUsage.IMPORT_INTERFACE;
 import static org.batfish.representation.palo_alto.PaloAltoStructureUsage.LAYER2_INTERFACE_ZONE;
+import static org.batfish.representation.palo_alto.PaloAltoStructureUsage.LAYER3_INTERFACE_ADDRESS;
 import static org.batfish.representation.palo_alto.PaloAltoStructureUsage.LAYER3_INTERFACE_ZONE;
+import static org.batfish.representation.palo_alto.PaloAltoStructureUsage.LOOPBACK_INTERFACE_ADDRESS;
 import static org.batfish.representation.palo_alto.PaloAltoStructureUsage.NAT_RULE_DESTINATION;
 import static org.batfish.representation.palo_alto.PaloAltoStructureUsage.NAT_RULE_DESTINATION_TRANSLATION;
 import static org.batfish.representation.palo_alto.PaloAltoStructureUsage.NAT_RULE_FROM_ZONE;
@@ -1921,6 +1923,18 @@ public class PaloAltoConfigurationBuilder extends PaloAltoParserBaseListener {
   @Override
   public void exitSniel3_ip(Sniel3_ipContext ctx) {
     _currentInterface.addAddress(toInterfaceAddress(ctx.address));
+    String uniqueReferenceName = computeObjectName(_currentVsys.getName(), getText(ctx.address));
+    if (ctx.address.reference != null) {
+      referenceStructure(
+          ADDRESS_LIKE, uniqueReferenceName, LAYER3_INTERFACE_ADDRESS, getLine(ctx.address.start));
+    } else {
+      // May refer to an ambiguously named object, so don't produce undefined reference
+      referenceStructure(
+          ADDRESS_LIKE_OR_NONE,
+          uniqueReferenceName,
+          LAYER3_INTERFACE_ADDRESS,
+          getLine(ctx.address.start));
+    }
   }
 
   @Override
@@ -1954,6 +1968,21 @@ public class PaloAltoConfigurationBuilder extends PaloAltoParserBaseListener {
       }
     }
     _currentInterface.addAddress(toInterfaceAddress(ctx.address));
+    String uniqueReferenceName = computeObjectName(_currentVsys.getName(), getText(ctx.address));
+    if (ctx.address.reference != null) {
+      referenceStructure(
+          ADDRESS_LIKE,
+          uniqueReferenceName,
+          LOOPBACK_INTERFACE_ADDRESS,
+          getLine(ctx.address.start));
+    } else {
+      // May refer to an ambiguously named object, so don't produce undefined reference
+      referenceStructure(
+          ADDRESS_LIKE_OR_NONE,
+          uniqueReferenceName,
+          LOOPBACK_INTERFACE_ADDRESS,
+          getLine(ctx.address.start));
+    }
   }
 
   @Override
@@ -2729,14 +2758,6 @@ public class PaloAltoConfigurationBuilder extends PaloAltoParserBaseListener {
       _currentConfiguration.setPanorama(panorama);
     }
     return panorama;
-  }
-
-  /**
-   * Extract un-canonicalized Ip address from prefix, useful for extracting Ip address for
-   * interfaces.
-   */
-  private Ip extractOriginalPrefixIp(Ip_prefixContext ctx) {
-    return Ip.parse(getText(ctx).split("/")[0]);
   }
 
   private static boolean toBoolean(Yes_or_noContext ctx) {

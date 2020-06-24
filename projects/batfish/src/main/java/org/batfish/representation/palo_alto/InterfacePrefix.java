@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 import org.batfish.datamodel.Ip;
 import org.batfish.datamodel.Prefix;
 
-/** Ipv4 prefix structure preserving initial Ip address. */
+/** Palo Alto ipv4 prefix structure preserving initial (not canonical) ip address. */
 public class InterfacePrefix implements Serializable {
 
   /** A "0.0.0.0/0" prefix */
