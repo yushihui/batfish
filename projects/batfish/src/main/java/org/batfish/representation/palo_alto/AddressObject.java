@@ -34,10 +34,7 @@ public final class AddressObject implements Serializable {
   // Only one can be set
   @Nullable private Ip _ip;
   @Nullable private Range<Ip> _ipRange;
-  @Nullable private Prefix _prefix;
-
-  // Only set if _prefix is set
-  @Nullable private Ip _originalPrefixAddress;
+  @Nullable private InterfacePrefix _prefix;
 
   public AddressObject(String name) {
     _name = name;
@@ -48,7 +45,6 @@ public final class AddressObject implements Serializable {
     _ip = null;
     _ipRange = null;
     _prefix = null;
-    _originalPrefixAddress = null;
   }
 
   @Nullable
@@ -61,7 +57,7 @@ public final class AddressObject implements Serializable {
     if (_ip != null) {
       return _ip.toIpSpace();
     } else if (_prefix != null) {
-      return _prefix.toIpSpace();
+      return _prefix.getPrefix().toIpSpace();
     } else if (_ipRange != null) {
       return IpRange.range(_ipRange.lowerEndpoint(), _ipRange.upperEndpoint());
     }
@@ -74,8 +70,7 @@ public final class AddressObject implements Serializable {
       return ConcreteInterfaceAddress.create(_ip, Prefix.MAX_PREFIX_LENGTH);
     } else if (_prefix != null) {
       return ConcreteInterfaceAddress.create(
-          _originalPrefixAddress != null ? _originalPrefixAddress : _prefix.getStartIp(),
-          _prefix.getPrefixLength());
+          _prefix.getIp(), _prefix.getPrefix().getPrefixLength());
     }
     // Cannot convert ambiguous address objects like ip-range objects to concrete iface address
     return null;
@@ -87,7 +82,8 @@ public final class AddressObject implements Serializable {
     if (_ip != null) {
       return ImmutableRangeSet.of(Range.singleton(_ip));
     } else if (_prefix != null) {
-      return ImmutableRangeSet.of(Range.closed(_prefix.getStartIp(), _prefix.getEndIp()));
+      return ImmutableRangeSet.of(
+          Range.closed(_prefix.getPrefix().getStartIp(), _prefix.getPrefix().getEndIp()));
     } else if (_ipRange != null) {
       return ImmutableRangeSet.of(_ipRange);
     }
@@ -105,13 +101,8 @@ public final class AddressObject implements Serializable {
   }
 
   @Nullable
-  public Prefix getPrefix() {
+  public InterfacePrefix getPrefix() {
     return _prefix;
-  }
-
-  @Nullable
-  public Ip getOriginalPrefixAddress() {
-    return _originalPrefixAddress;
   }
 
   @Nonnull
@@ -145,10 +136,9 @@ public final class AddressObject implements Serializable {
     _ipRange = ipRange;
   }
 
-  public void setPrefix(@Nullable Prefix prefix, @Nullable Ip originalPrefixAddress) {
+  public void setPrefix(@Nullable InterfacePrefix prefix) {
     _type = prefix == null ? null : Type.PREFIX;
     clearAddress();
     _prefix = prefix;
-    _originalPrefixAddress = originalPrefixAddress;
   }
 }

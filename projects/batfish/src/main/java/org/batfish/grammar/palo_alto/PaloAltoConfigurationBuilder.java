@@ -354,6 +354,7 @@ import org.batfish.representation.palo_alto.EbgpPeerGroupType.ExportNexthopMode;
 import org.batfish.representation.palo_alto.EbgpPeerGroupType.ImportNexthopMode;
 import org.batfish.representation.palo_alto.Interface;
 import org.batfish.representation.palo_alto.InterfaceAddress;
+import org.batfish.representation.palo_alto.InterfacePrefix;
 import org.batfish.representation.palo_alto.NatRule;
 import org.batfish.representation.palo_alto.OspfArea;
 import org.batfish.representation.palo_alto.OspfAreaNormal;
@@ -1488,9 +1489,7 @@ public class PaloAltoConfigurationBuilder extends PaloAltoParserBaseListener {
     if (ctx.ip_address() != null) {
       _currentAddressObject.setIp(toIp(ctx.ip_address()));
     } else if (ctx.ip_prefix() != null) {
-      String prefixText = getText(ctx.ip_prefix());
-      _currentAddressObject.setPrefix(
-          Prefix.parse(prefixText), extractOriginalPrefixIp(prefixText));
+      _currentAddressObject.setPrefix(toInterfacePrefix(ctx.ip_prefix()));
     } else {
       warn(ctx, "Cannot understand what follows 'ip-netmask'");
     }
@@ -2733,11 +2732,11 @@ public class PaloAltoConfigurationBuilder extends PaloAltoParserBaseListener {
   }
 
   /**
-   * Extract un-canonicalized Ip address from prefix text, useful for extracting Ip address for
+   * Extract un-canonicalized Ip address from prefix, useful for extracting Ip address for
    * interfaces.
    */
-  private Ip extractOriginalPrefixIp(String prefixText) {
-    return Ip.parse(prefixText.split("/")[0]);
+  private Ip extractOriginalPrefixIp(Ip_prefixContext ctx) {
+    return Ip.parse(getText(ctx).split("/")[0]);
   }
 
   private static boolean toBoolean(Yes_or_noContext ctx) {
@@ -2759,6 +2758,10 @@ public class PaloAltoConfigurationBuilder extends PaloAltoParserBaseListener {
 
   private static @Nonnull Ip toIp(Ip_addressContext ctx) {
     return Ip.parse(ctx.getText());
+  }
+
+  private static @Nonnull InterfacePrefix toInterfacePrefix(Ip_prefixContext ctx) {
+    return InterfacePrefix.parse(ctx.getText());
   }
 
   private static @Nonnull Prefix toPrefix(Ip_prefixContext ctx) {
