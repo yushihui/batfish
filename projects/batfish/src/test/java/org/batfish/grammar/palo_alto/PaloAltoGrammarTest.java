@@ -1243,7 +1243,10 @@ public final class PaloAltoGrammarTest {
     // Should see warning about valid object, but address range can't be used for interface address
     assertThat(
         warn.getRedFlagWarnings().stream().map(Warning::getText).collect(Collectors.toSet()),
-        contains(
+        containsInAnyOrder(
+            String.format(
+                "Interface %s is not in a virtual-router, placing in %s and shutting it down.",
+                "ethernet1/3.11", NULL_VRF_NAME),
             String.format(
                 "Could not convert InterfaceAddress to ConcreteInterfaceAddress: %s",
                 new InterfaceAddress(InterfaceAddress.Type.REFERENCE, "ADDR3"))));
