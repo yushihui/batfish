@@ -1,6 +1,7 @@
 package org.batfish.datamodel.pojo;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static org.batfish.common.util.isp.IspModelingUtils.AWS_BACKBONE_HOSTNAME;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,6 +13,7 @@ import javax.annotation.Nonnull;
 import org.batfish.common.BatfishException;
 import org.batfish.datamodel.Configuration;
 import org.batfish.datamodel.ConfigurationFormat;
+import org.batfish.datamodel.DeviceModel;
 import org.batfish.datamodel.Edge;
 import org.batfish.datamodel.InterfaceType;
 import org.batfish.datamodel.pojo.Aggregate.AggregateType;
@@ -99,6 +101,12 @@ public class Topology extends BfObject {
       // and then put that container in their container
       if (configuration.getConfigurationFormat() == ConfigurationFormat.AWS) {
         putInAwsAggregate(pojoTopology, configuration, pojoNode);
+      }
+      if (configuration.getDeviceModel() == DeviceModel.AWS_SERVICES_GATEWAY
+          || configuration.getHostname().equalsIgnoreCase(AWS_BACKBONE_HOSTNAME)) {
+        Aggregate amazonAggregate =
+            pojoTopology.getOrCreateAggregate("amazon infra", AggregateType.CLOUD);
+        amazonAggregate.getContents().add(pojoNode.getId());
       }
     }
     return pojoTopology;

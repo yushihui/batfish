@@ -1,6 +1,6 @@
 package org.batfish.representation.aws;
 
-import static org.batfish.representation.aws.AwsConfiguration.AWS_BACKBONE_ASN;
+import static org.batfish.common.util.isp.IspModelingUtils.AWS_BACKBONE_ASN;
 import static org.batfish.representation.aws.AwsConfiguration.BACKBONE_FACING_INTERFACE_NAME;
 import static org.batfish.representation.aws.AwsConfiguration.BACKBONE_PEERING_ASN;
 import static org.batfish.representation.aws.AwsConfiguration.LINK_LOCAL_IP;

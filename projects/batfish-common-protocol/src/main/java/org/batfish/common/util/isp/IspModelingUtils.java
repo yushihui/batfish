@@ -78,6 +78,13 @@ import org.batfish.specifier.LocationInfo;
 
 /** Util classes and functions to model ISPs and Internet for a given network */
 public final class IspModelingUtils {
+  /** ASN to use for AWS backbone */
+  public static final long AWS_BACKBONE_ASN = 16509L;
+
+  /** Hostname to use for AWS backbone */
+  public static final String AWS_BACKBONE_HOSTNAME =
+      IspModelingUtils.getDefaultIspNodeName(AWS_BACKBONE_ASN);
+
   static final Prefix INTERNET_OUT_SUBNET = Prefix.parse("240.254.254.0/30");
 
   static final LocationInfo INTERNET_OUT_INTERFACE_LINK_LOCATION_INFO =
