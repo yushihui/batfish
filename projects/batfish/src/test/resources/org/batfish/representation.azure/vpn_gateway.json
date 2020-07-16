@@ -1,0 +1,61 @@
+{
+  "value": [
+    {
+      "name": "a139004e542a42b9a685e94e4401e7ed-eastus-gw",
+      "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/vpnGateways/a139004e542a42b9a685e94e4401e7ed-eastus-gw",
+      "etag": "W/\"71e582ca-4a30-4a2b-b3ae-30dcd20bfe3f\"",
+      "type": "Microsoft.Network/vpnGateways",
+      "location": "eastus",
+      "properties": {
+        "provisioningState": "Succeeded",
+        "connections": [
+          {
+            "name": "Connection-Bur",
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/vpnGateways/a139004e542a42b9a685e94e4401e7ed-eastus-gw/vpnConnections/Connection-Bur",
+            "etag": "W/\"71e582ca-4a30-4a2b-b3ae-30dcd20bfe3f\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "remoteVpnSite": {
+                "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/vpnSites/Bur"
+              },
+              "enableInternetSecurity": false,
+              "vpnLinkConnections": [
+
+              ],
+              "ingressBytesTransferred": 0,
+              "egressBytesTransferred": 0
+            },
+            "type": "Microsoft.Network/vpnGateways/vpnConnections"
+          }
+        ],
+        "virtualHub": {
+          "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualHubs/East-VHUB"
+        },
+        "bgpSettings": {
+          "asn": 65515,
+          "peerWeight": 0
+        },
+        "vpnGatewayScaleUnit": 1
+      }
+    },
+    {
+      "name": "07b270a4ab194dee8c3838953f050c49-canadacentral-gw",
+      "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/vpnGateways/07b270a4ab194dee8c3838953f050c49-canadacentral-gw",
+      "etag": "W/\"3ccf4743-2819-4902-a5c2-0dbddd8dccb3\"",
+      "type": "Microsoft.Network/vpnGateways",
+      "location": "canadacentral",
+      "properties": {
+        "provisioningState": "Succeeded",
+        "connections": [],
+        "virtualHub": {
+          "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualHubs/Canada-Central-Hub"
+        },
+        "bgpSettings": {
+          "asn": 65515,
+          "peerWeight": 0
+        },
+        "vpnGatewayScaleUnit": 1
+      }
+    }
+  ]
+}

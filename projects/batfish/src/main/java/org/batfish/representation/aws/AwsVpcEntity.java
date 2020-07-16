@@ -1,8 +1,10 @@
 package org.batfish.representation.aws;
 
+import org.batfish.representation.cloud.CloudEntity;
+
 /** An interface implemented by all AWS entities */
 @SuppressWarnings("JavaDoc") // all constants below create a warning
-public interface AwsVpcEntity {
+public interface AwsVpcEntity extends CloudEntity {
 
   String JSON_KEY_ACCEPTED_ROUTE_COUNT = "AcceptedRouteCount";
   String JSON_KEY_ACCEPTER_VPC_INFO = "AccepterVpcInfo";

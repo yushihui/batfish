@@ -1,0 +1,33 @@
+{
+  "value": [
+    {
+      "name": "Spoke-VNET-2-NAT-Gateway",
+      "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/natGateways/Spoke-VNET-2-NAT-Gateway",
+      "etag": "W/\"624d0483-7a02-4435-a6f2-0abf88c8564b\"",
+      "type": "Microsoft.Network/natGateways",
+      "location": "eastus2",
+      "tags": {},
+      "zones": [
+        "1"
+      ],
+      "properties": {
+        "provisioningState": "Succeeded",
+        "resourceGuid": "844eadf7-7b17-4db8-a5cd-632a0b16ff51",
+        "idleTimeoutInMinutes": 10,
+        "publicIpAddresses": [
+          {
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/publicIPAddresses/NAT-Public-IP"
+          }
+        ],
+        "subnets": [
+          {
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/virtualNetworks/Spoke-VNET-2/subnets/172.17.13.0-15"
+          }
+        ]
+      },
+      "sku": {
+        "name": "Standard"
+      }
+    }
+  ]
+}

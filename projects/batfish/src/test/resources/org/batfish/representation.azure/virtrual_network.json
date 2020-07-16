@@ -1,0 +1,104 @@
+{
+  "value": [
+    {
+      "name": "Spoke-VNET-2",
+      "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/virtualNetworks/Spoke-VNET-2",
+      "etag": "W/\"9185d615-ab52-4e1d-875a-035dba050fa6\"",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "eastus2",
+      "tags": {},
+      "properties": {
+        "provisioningState": "Succeeded",
+        "resourceGuid": "dae5d37c-8130-4327-8d37-25496ed75539",
+        "addressSpace": {
+          "addressPrefixes": [
+            "172.17.13.0/24"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "172.17.13.0-15",
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/virtualNetworks/Spoke-VNET-2/subnets/172.17.13.0-15",
+            "etag": "W/\"9185d615-ab52-4e1d-875a-035dba050fa6\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "addressPrefix": "172.17.13.0/28",
+              "natGateway": {
+                "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/natGateways/Spoke-VNET-2-NAT-Gateway"
+              },
+              "ipConfigurations": [
+                {
+                  "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/networkInterfaces/spoke-vnet-2-endpoin374/ipConfigurations/ipconfig1"
+                },
+                {
+                  "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/networkInterfaces/spoke-vnet-2-endpoin99/ipConfigurations/ipconfig1"
+                }
+              ],
+              "delegations": [],
+              "privateEndpointNetworkPolicies": "Enabled",
+              "privateLinkServiceNetworkPolicies": "Enabled"
+            },
+            "type": "Microsoft.Network/virtualNetworks/subnets"
+          },
+          {
+            "name": "172.17.13.16-31",
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/virtualNetworks/Spoke-VNET-2/subnets/172.17.13.16-31",
+            "etag": "W/\"9185d615-ab52-4e1d-875a-035dba050fa6\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "addressPrefix": "172.17.13.16/28",
+              "ipConfigurations": [
+                {
+                  "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/networkInterfaces/spoke-vnet-3-endpoin338/ipConfigurations/ipconfig1"
+                }
+              ],
+              "serviceEndpoints": [],
+              "delegations": [],
+              "privateEndpointNetworkPolicies": "Enabled",
+              "privateLinkServiceNetworkPolicies": "Enabled"
+            },
+            "type": "Microsoft.Network/virtualNetworks/subnets"
+          }
+        ],
+        "virtualNetworkPeerings": [
+          {
+            "name": "Spoke-VNET2-To-Hub-VNET",
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/virtualNetworks/Spoke-VNET-2/virtualNetworkPeerings/Spoke-VNET2-To-Hub-VNET",
+            "etag": "W/\"9185d615-ab52-4e1d-875a-035dba050fa6\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "resourceGuid": "b5fa35a0-4544-0b61-26e2-cda7eb9f0fe9",
+              "peeringState": "Connected",
+              "remoteVirtualNetwork": {
+                "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualNetworks/East-VNET1"
+              },
+              "allowVirtualNetworkAccess": true,
+              "allowForwardedTraffic": true,
+              "allowGatewayTransit": false,
+              "useRemoteGateways": true,
+              "doNotVerifyRemoteGateways": false,
+              "remoteGateways": [
+                {
+                  "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualNetworkGateways/East-Express-GW"
+                },
+                {
+                  "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualNetworkGateways/East-VPN-GW"
+                }
+              ],
+              "remoteAddressSpace": {
+                "addressPrefixes": [
+                  "172.17.11.0/24",
+                  "172.17.15.0/24"
+                ]
+              },
+              "routeServiceVips": {}
+            },
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings"
+          }
+        ],
+        "enableDdosProtection": false,
+        "enableVmProtection": false
+      }
+    }
+  ]
+}

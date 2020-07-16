@@ -1,0 +1,31 @@
+{
+  "value": [
+    {
+      "name": "VWAN-TO-BUR",
+      "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualWans/VWAN-TO-BUR",
+      "etag": "W/\"e6143ae0-bef6-4716-8f36-3dc52b75a9f1\"",
+      "type": "Microsoft.Network/virtualWans",
+      "location": "eastus",
+      "properties": {
+        "provisioningState": "Succeeded",
+        "disableVpnEncryption": false,
+        "allowBranchToBranchTraffic": true,
+        "office365LocalBreakoutCategory": "None",
+        "type": "Standard",
+        "virtualHubs": [
+          {
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualHubs/East-VHUB"
+          },
+          {
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualHubs/Canada-Central-Hub"
+          }
+        ],
+        "vpnSites": [
+          {
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/vpnSites/Bur"
+          }
+        ]
+      }
+    }
+  ]
+}

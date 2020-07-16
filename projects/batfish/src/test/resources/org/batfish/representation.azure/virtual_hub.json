@@ -1,0 +1,128 @@
+{
+  "value": [
+    {
+      "name": "East-VHUB",
+      "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualHubs/East-VHUB",
+      "etag": "W/\"af16a033-e99b-4b88-9093-fa87da1234f2\"",
+      "type": "Microsoft.Network/virtualHubs",
+      "location": "eastus",
+      "tags": {},
+      "properties": {
+        "provisioningState": "Succeeded",
+        "virtualNetworkConnections": [],
+        "virtualHubRouteTableV2s": [],
+        "addressPrefix": "172.17.253.0/24",
+        "routeServiceAsn": "65515",
+        "routeServicePeeringIPs": "[{\"InstanceName\":\"RouteServiceRole_IN_0\",\"IPAddress\":\"172.17.253.100\"},{\"InstanceName\":\"RouteServiceRole_IN_1\",\"IPAddress\":\"172.17.253.101\"}]",
+        "routeTable": {
+          "routes": []
+        },
+        "virtualWan": {
+          "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualWans/VWAN-TO-BUR"
+        },
+        "vpnGateway": {
+          "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/vpnGateways/a139004e542a42b9a685e94e4401e7ed-eastus-gw"
+        },
+        "expressRouteGateway": {
+          "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/expressRouteGateways/947de39baaf54512b65930c2300c7ded-eastus-er-gw"
+        }
+      }
+    },
+    {
+      "name": "Canada-Central-Hub",
+      "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualHubs/Canada-Central-Hub",
+      "etag": "W/\"b8c3efd2-d57e-4e29-9851-4680a1663a60\"",
+      "type": "Microsoft.Network/virtualHubs",
+      "location": "canadacentral",
+      "tags": {},
+      "properties": {
+        "provisioningState": "Succeeded",
+        "virtualNetworkConnections": [
+          {
+            "name": "Canada-VNET1-to-VHUB",
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualHubs/Canada-Central-Hub/hubVirtualNetworkConnections/Canada-VNET1-to-VHUB",
+            "etag": "W/\"b8c3efd2-d57e-4e29-9851-4680a1663a60\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "resourceGuid": "02c80358-66f1-492a-8d17-4028148fb5dc",
+              "remoteVirtualNetwork": {
+                "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Canada-Central_RG/providers/Microsoft.Network/virtualNetworks/Canada-Central-VNET1"
+              },
+              "allowHubToRemoteVnetTransit": true,
+              "allowRemoteVnetToUseHubVnetGateways": true,
+              "enableInternetSecurity": true
+            },
+            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections"
+          }
+        ],
+        "virtualHubRouteTableV2s": [
+          {
+            "name": "VirtualNetworkRouteTable",
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualHubs/Canada-Central-Hub/routeTables/VirtualNetworkRouteTable",
+            "etag": "W/\"b8c3efd2-d57e-4e29-9851-4680a1663a60\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "routes": [
+                {
+                  "destinationType": "CIDR",
+                  "destinations": [
+                    "172.17.16.0/24",
+                    "172.17.17.0/24"
+                  ],
+                  "nextHopType": "IPAddress",
+                  "nextHops": [
+                    "172.17.252.68"
+                  ]
+                }
+              ],
+              "attachedConnections": [
+                "All_Vnets"
+              ]
+            },
+            "type": "Microsoft.Network/virtualHubs/routeTables"
+          },
+          {
+            "name": "BranchRouteTable",
+            "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualHubs/Canada-Central-Hub/routeTables/BranchRouteTable",
+            "etag": "W/\"b8c3efd2-d57e-4e29-9851-4680a1663a60\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "routes": [
+                {
+                  "destinationType": "CIDR",
+                  "destinations": [
+                    "172.17.16.0/24",
+                    "172.17.17.0/24"
+                  ],
+                  "nextHopType": "IPAddress",
+                  "nextHops": [
+                    "172.17.252.68"
+                  ]
+                }
+              ],
+              "attachedConnections": [
+                "All_Branches"
+              ]
+            },
+            "type": "Microsoft.Network/virtualHubs/routeTables"
+          }
+        ],
+        "addressPrefix": "172.17.252.0/24",
+        "routeServiceAsn": "65515",
+        "routeServicePeeringIPs": "[{\"InstanceName\":\"RouteServiceRole_IN_0\",\"IPAddress\":\"172.17.252.100\"},{\"InstanceName\":\"RouteServiceRole_IN_1\",\"IPAddress\":\"172.17.252.101\"}]",
+        "routeTable": {
+          "routes": []
+        },
+        "virtualWan": {
+          "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/virtualWans/VWAN-TO-BUR"
+        },
+        "vpnGateway": {
+          "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/vpnGateways/07b270a4ab194dee8c3838953f050c49-canadacentral-gw"
+        },
+        "azureFirewall": {
+          "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/East-RG1/providers/Microsoft.Network/azureFirewalls/AzureFirewall_Canada-Central-Hub"
+        }
+      }
+    }
+  ]
+}
