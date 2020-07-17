@@ -1,0 +1,25 @@
+{
+  "name": "NAT-Public-IP",
+  "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/publicIPAddresses/NAT-Public-IP",
+  "etag": "W/\"d4d9e43a-2ea7-4534-a6d3-63b3d8a79099\"",
+  "location": "eastus2",
+  "zones": [
+    "1"
+  ],
+  "properties": {
+    "provisioningState": "Succeeded",
+    "resourceGuid": "a28a34ab-c9c4-4d56-a49e-644868e7b9b8",
+    "natGateway": {
+      "id": "/subscriptions/073e6f45-d1ae-40fe-93af-88231d2377bd/resourceGroups/Spoke-VNET-2/providers/Microsoft.Network/natGateways/Spoke-VNET-2-NAT-Gateway"
+    },
+    "ipAddress": "5.5.5.5",
+    "publicIPAddressVersion": "IPv4",
+    "publicIPAllocationMethod": "Static",
+    "idleTimeoutInMinutes": 4,
+    "ipTags": []
+  },
+  "type": "Microsoft.Network/publicIPAddresses",
+  "sku": {
+    "name": "Standard"
+  }
+}
